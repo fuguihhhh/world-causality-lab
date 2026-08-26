@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>World Causality Lab · 世界因果实验室</title>
+<style>
+  :root{
+    --bg:#0d1117;--panel:#151b23;--panel2:#1c2430;--line:#2a3441;--text:#e7edf4;--muted:#98a6b6;
+    --accent:#7dd3fc;--good:#86efac;--warn:#fde68a;--danger:#fca5a5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#0b0f14,#101722 55%,#0b0f14);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+  header{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(13,17,23,.94);backdrop-filter:blur(10px);z-index:10}
+  .title{font-weight:800;letter-spacing:.2px}.title small{display:block;font-weight:500;color:var(--muted);font-size:12px;margin-top:2px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  button,select,input[type="number"],input[type="range"]{font:inherit}
+  button,select,input[type="number"]{background:#1a2330;color:var(--text);border:1px solid #334155;border-radius:9px;padding:8px 10px}
+  button{cursor:pointer}button:hover{border-color:#5b7189}button.primary{background:#143149;border-color:#2c6d91}button.danger{background:#3b1f27;border-color:#75404d}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;padding:14px;max-width:1600px;margin:0 auto}
+  .card{background:rgba(21,27,35,.95);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 12px 30px #0002}
+  .mapwrap{padding:12px}.maptop{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap}.tabs button.active{background:#21405a;border-color:#4f8db4}
+  canvas{width:100%;aspect-ratio:5/3;display:block;border-radius:11px;border:1px solid #273341;background:#07111b;image-rendering:auto}
+  .legend{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:7px}
+  .timeline{padding:12px;border-top:1px solid var(--line)}
+  .timeline-row{display:grid;grid-template-columns:70px 1fr 70px;gap:10px;align-items:center}
+  input[type="range"]{width:100%}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.compare canvas{aspect-ratio:5/3}
+  .side{display:flex;flex-direction:column;gap:14px}.section{padding:14px}.section h3{margin:0 0 10px;font-size:14px}.muted{color:var(--muted)}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:7px}.stat{background:var(--panel2);border:1px solid #2b3745;border-radius:9px;padding:8px}.stat b{display:block;font-size:16px}.stat span{font-size:11px;color:var(--muted)}
+  .kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:13px;padding:5px 0;border-bottom:1px dashed #2a3441}.kv:last-child{border-bottom:0}
+  .event{padding:9px 10px;border-left:3px solid #577b9a;background:#18212c;border-radius:7px;margin:7px 0;font-size:12px}.event strong{display:block;margin-bottom:2px}.event .why{color:#b9c7d5;margin-top:4px}
+  .intervention label{display:block;font-size:12px;color:var(--muted);margin:9px 0 4px}.intervention .row{display:grid;grid-template-columns:1fr 64px;gap:8px;align-items:center}
+  .pill{display:inline-block;padding:3px 7px;border:1px solid #365065;border-radius:999px;font-size:11px;color:#b9d7ec;background:#173044}
+  .notice{font-size:12px;color:#aebdcb;background:#121b24;border:1px solid #2b3947;padding:10px;border-radius:9px;line-height:1.5}
+  .footer{max-width:1600px;margin:0 auto;padding:0 14px 18px;color:var(--muted);font-size:11px}
+  @media (max-width:980px){.layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr 1fr}.side .card:last-child{grid-column:1/-1}}
+  @media (max-width:640px){header{align-items:flex-start;flex-direction:column}.controls{justify-content:flex-start}.layout{padding:8px}.side{display:flex}.compare{grid-template-columns:1fr}.timeline-row{grid-template-columns:55px 1fr 55px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="title">World Causality Lab <small>缩小版地球 · 约 25% 陆地 · 可解释历史推演</small></div>
+  <div class="controls">
+    <label class="muted">Seed <input id="seedInput" type="number" value="723891" style="width:100px"></label>
+    <button id="newWorldBtn">生成世界</button>
+    <button id="runBtn" class="primary">推演到 300 年</button>
+    <button id="compareBtn">对比历史</button>
+  </div>
+</header>
+
+<div class="layout">
+  <main class="card">
+    <div class="mapwrap">
+      <div class="maptop">
+        <div class="tabs" id="layerTabs"></div>
+        <div><span class="pill" id="landRatioPill">陆地 --%</span> <span class="pill" id="simStatus">年份 0</span></div>
+      </div>
+      <canvas id="worldCanvas" width="1000" height="600"></canvas>
+      <div class="legend"><span id="legendLeft">低</span><span id="legendTitle">地形</span><span id="legendRight">高</span></div>
+    </div>
+    <div class="timeline">
+      <div class="timeline-row">
+        <span class="muted">年份 <b id="yearLabel">0</b></span>
+        <input id="yearSlider" type="range" min="0" max="300" value="0" step="1">
+        <button id="playBtn">播放</button>
+      </div>
+      <div class="compare" id="compareBox" hidden>
+        <div><div class="muted" style="margin:4px 0 6px">原历史</div><canvas id="baseCanvas" width="800" height="480"></canvas></div>
+        <div><div class="muted" style="margin:4px 0 6px">修改后历史</div><canvas id="forkCanvas" width="800" height="480"></canvas></div>
+      </div>
+      <div id="diffSummary" class="notice" style="margin-top:10px" hidden></div>
+    </div>
+  </main>
+
+  <aside class="side">
+    <section class="card section">
+      <h3>世界概况</h3>
+      <div class="stats" id="worldStats"></div>
+      <div class="notice" style="margin-top:10px">该模型是规则实验模型，不用于预测真实历史。地理、人口、经济、国家与战争只保留最关键的因果链。</div>
+    </section>
+
+    <section class="card section">
+      <h3>选中区域</h3>
+      <div id="regionInfo" class="muted">点击地图上的陆地区域。</div>
+    </section>
+
+    <section class="card section intervention">
+      <h3>反事实干预</h3>
+      <div class="muted" style="font-size:12px">在当前年份修改选中区域，然后从这里创建一条平行历史。</div>
+      <label>海拔变化</label><div class="row"><input id="elevDelta" type="range" min="-50" max="50" value="0"><span id="elevOut">0</span></div>
+      <label>降水变化</label><div class="row"><input id="rainDelta" type="range" min="-50" max="50" value="0"><span id="rainOut">0</span></div>
+      <label>矿产变化</label><div class="row"><input id="mineralDelta" type="range" min="-50" max="50" value="0"><span id="mineralOut">0</span></div>
+      <label>农业技术变化</label><div class="row"><input id="techDelta" type="range" min="-30" max="30" value="0"><span id="techOut">0</span></div>
+      <button id="forkBtn" class="primary" style="width:100%;margin-top:12px">应用修改并推演到 300 年</button>
+      <button id="clearForkBtn" class="danger" style="width:100%;margin-top:7px">清除平行历史</button>
+    </section>
+
+    <section class="card section">
+      <h3>因果与事件</h3>
+      <div id="eventList" class="muted">推演后会显示与当前年份、当前区域相关的事件和原因。</div>
+    </section>
+  </aside>
+</div>
+<div class="footer">核心结构：World State → Rules → Simulation → Events → Causal Log → History。随机性使用 seed + 年份 + 区域 + 事件标签确定，保证原历史与反事实历史可比较。</div>
+
+<script>
+(() => {
+  'use strict';
+  const W=50,H=30,N=W*H,MAX_YEAR=300,SNAPSHOT_STEP=5;
+  const STATE_NAMES=['阿尔维亚','贝伦','卡斯提尔','多林','埃索拉','弗伦','格莱恩','赫拉斯','伊诺尔','迦德','凯尔','卢玛'];
+  const STATE_COLORS=['#ef9a9a','#90caf9','#a5d6a7','#ce93d8','#ffcc80','#80cbc4','#f48fb1','#9fa8da','#bcaaa4','#fff59d','#b39ddb','#81d4fa'];
+  const layers={terrain:'地形',rain:'降水',population:'人口',wealth:'财富',states:'国家',stability:'稳定度',military:'军力'};
+  let world=null, forkWorld=null, selected=-1, activeLayer='terrain', playing=false, playTimer=null, compareOn=false;
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a=0,b=100)=>Math.max(a,Math.min(b,v));
+  const idx=(x,y)=>y*W+x;
+  const xy=i=>[i%W,Math.floor(i/W)];
+  function hash32(s){let h=2166136261>>>0; for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)} return h>>>0;}
+  function randKey(seed,...parts){let x=hash32([seed,...parts].join('|')); x^=x<<13; x^=x>>>17; x^=x<<5; return (x>>>0)/4294967296;}
+  function noise2(seed,x,y){
+    const cell=6, x0=Math.floor(x/cell), y0=Math.floor(y/cell), fx=(x/cell)-x0, fy=(y/cell)-y0;
+    const sm=t=>t*t*(3-2*t), lerp=(a,b,t)=>a+(b-a)*t;
+    const v=(xx,yy)=>randKey(seed,'noise',xx,yy)*2-1;
+    const a=lerp(v(x0,y0),v(x0+1,y0),sm(fx)), b=lerp(v(x0,y0+1),v(x0+1,y0+1),sm(fx));
+    return lerp(a,b,sm(fy));
+  }
+  function continentScore(seed,x,y){
+    // 我定义的 5 个大陆骨架：两块大洲、两块中洲、一块南部碎大陆；噪声只负责海岸线。
+    const blobs=[
+      [10,9,8.8,6.5,1.18],[22,20,7.8,5.3,1.07],[34,9,10.2,6.4,1.22],[42,20,5.2,4.3,1.03],[27,7,4.8,3.7,.88]
+    ];
+    let best=-9;
+    for(const [cx,cy,rx,ry,amp] of blobs){
+      const dx=(x-cx)/rx, dy=(y-cy)/ry;
+      best=Math.max(best,amp-(dx*dx+dy*dy));
+    }
+    const coastNoise=noise2(seed,x,y)*0.23 + noise2(seed+991,x*1.9,y*1.9)*0.08;
+    return best+coastNoise;
+  }
+  function generateLand(seed){
+    const scores=new Float32Array(N); for(let y=0;y<H;y++)for(let x=0;x<W;x++)scores[idx(x,y)]=continentScore(seed,x,y);
+    const arr=[...scores].sort((a,b)=>b-a); const threshold=arr[Math.floor(N*0.25)];
+    const land=new Uint8Array(N); let count=0; for(let i=0;i<N;i++){if(scores[i]>=threshold){land[i]=1;count++;}}
+    return {land,ratio:count/N,scores};
+  }
+  function neighbors(i){const [x,y]=xy(i), out=[]; for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx>=0&&nx<W&&ny>=0&&ny<H)out.push(idx(nx,ny));} return out;}
+  function createWorld(seed){
+    const {land,ratio,scores}=generateLand(seed);
+    const r=[];
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+      const i=idx(x,y), isLand=!!land[i], lat=Math.abs((y/(H-1))*2-1);
+      const edge=neighbors(i).some(n=>!land[n]);
+      const elev=isLand?clamp(18+scores[i]*50+randKey(seed,'e',i)*28):0;
+      const temp=clamp(93-lat*80-elev*.18 + (randKey(seed,'t',i)-.5)*8);
+      let rain=clamp(72-lat*28 + (noise2(seed+7,x,y)+1)*13 - elev*.12 + (edge?7:0));
+      const water=clamp(rain*.66 + (edge?24:0) + (neighbors(i).some(n=>land[n]&&r[n]?.water>72)?5:0));
+      const fertility=isLand?clamp(100-Math.abs(temp-62)*1.05-Math.abs(rain-60)*.68-elev*.28 + randKey(seed,'f',i)*15):0;
+      const mineral=isLand?clamp(randKey(seed,'m',i)*72 + elev*.35):0;
+      const transport=isLand?clamp((edge?32:8)+100-elev*.72 + randKey(seed,'tr',i)*15):0;
+      const habit=isLand?clamp(fertility*.42+water*.23+temp*.15+transport*.2):0;
+      const pop=isLand?Math.max(0,(habit-48)*22 + randKey(seed,'p',i)*80):0;
+      r.push({i,x,y,land:isLand,elev,temp,rain,water,fertility,mineral,transport,habit,population:pop,wealth:pop*.35,food:0,trade:0,stability:60,military:0,agriTech:18,state:-1,city:false,cityYear:null});
+    }
+    // 河流/水源近似：高降水内陆向低海拔邻域形成额外水资源。
+    for(const c of r){if(!c.land)continue; if(c.rain>65 && c.elev>30){let cur=c; for(let k=0;k<6;k++){const ns=neighbors(cur.i).map(n=>r[n]).filter(n=>n.land); if(!ns.length)break; ns.sort((a,b)=>a.elev-b.elev); const nxt=ns[0]; nxt.water=clamp(nxt.water+14); nxt.transport=clamp(nxt.transport+8); cur=nxt;}}}
+    const states=seedStates(seed,r);
+    assignTerritories(r,states);
+    const w={seed,year:0,landRatio:ratio,regions:r,states,events:[],snapshots:new Map(),intervention:null};
+    updateAggregates(w,0,true); saveSnapshot(w); return w;
+  }
+  function seedStates(seed,r){
+    let candidates=r.filter(c=>c.land&&c.habit>58).sort((a,b)=>b.habit-a.habit); const count=Math.min(10,Math.max(6,Math.round(candidates.length/55)));
+    const chosen=[];
+    for(const c of candidates){if(chosen.every(o=>Math.hypot(c.x-o.x,c.y-o.y)>7)){chosen.push(c);if(chosen.length>=count)break;}}
+    return chosen.map((c,k)=>({id:k,name:STATE_NAMES[k],color:STATE_COLORS[k],capital:c.i,population:0,wealth:0,military:0,stability:60,alive:true,born:0,wars:0}));
+  }
+  function assignTerritories(r,states){
+    for(const c of r){if(!c.land){c.state=-1;continue;} let best=-1,bestCost=1e9; for(const s of states){const cap=r[s.capital]; const d=Math.hypot(c.x-cap.x,c.y-cap.y); const cost=d*(1.15+c.elev/180)-c.transport/120; if(cost<bestCost){bestCost=cost;best=s.id;}} c.state=best;}
+  }
+  function saveSnapshot(w){
+    if(w.year%SNAPSHOT_STEP!==0 && w.year!==MAX_YEAR) return;
+    w.snapshots.set(w.year,{year:w.year,regions:w.regions.map(c=>({population:c.population,wealth:c.wealth,state:c.state,stability:c.stability,military:c.military,city:c.city,elev:c.elev,rain:c.rain,mineral:c.mineral,agriTech:c.agriTech})),states:w.states.map(s=>({...s}))});
+  }
+  function snapshotAt(w,year){let y=Math.floor(year/SNAPSHOT_STEP)*SNAPSHOT_STEP; if(year===MAX_YEAR)y=MAX_YEAR; return w.snapshots.get(y)||w.snapshots.get(0);}
+  function event(w,year,type,title,region=-1,state=-1,causes=[]){w.events.push({year,type,title,region,state,causes}); if(w.events.length>5000)w.events.shift();}
+  function simulateYear(w){
+    const y=w.year+1, r=w.regions;
+    // 1 气候/粮食/人口/经济
+    for(const c of r){ if(!c.land)continue;
+      const drought=randKey(w.seed,'drought',y,Math.floor(c.x/5),Math.floor(c.y/5))<0.014;
+      const rainEff=clamp(c.rain+(drought?-28:0));
+      const climateFit=clamp(100-Math.abs(c.temp-62)*1.15-Math.abs(rainEff-60)*.7);
+      c.fertility=clamp(c.fertility*.985 + climateFit*.015);
+      const techMult=.7+c.agriTech/100*.9;
+      c.food=Math.max(0,(c.fertility*.58+c.water*.25)*techMult*1.7);
+      const capacity=Math.max(40,c.food*22+c.trade*4);
+      const shortage=clamp((c.population-capacity)/Math.max(1,capacity),0,2);
+      let growth=.012 - shortage*.05 + (c.wealth/(c.population+60))*0.0015;
+      if(drought)growth-=.012;
+      const natural=c.population*growth;
+      c.population=Math.max(0,c.population+natural);
+      c.trade=clamp(c.transport*.45 + Math.sqrt(Math.max(0,c.population))*1.4 + (neighbors(c.i).some(n=>!r[n].land)?20:0));
+      const agri=c.food*Math.min(1,c.population/(capacity*.35+1));
+      const mining=c.mineral*(.18+c.population/2000);
+      const tradeIncome=c.trade*(.3+c.population/1200);
+      c.wealth=Math.max(0,c.wealth*.985 + agri*.18 + mining*.09 + tradeIncome*.16);
+      c.stability=clamp(c.stability + (shortage>0.12?-3.2:0.35) + (drought?-1.2:0) + (c.wealth/(c.population+100)>1?0.2:-0.1));
+      c.agriTech=clamp(c.agriTech + 0.025 + Math.log10(1+c.wealth)*.008,0,100);
+      if(drought && c.population>120 && randKey(w.seed,'droughtlog',y,c.i)<.06)event(w,y,'drought','持续干旱削弱粮食供给',c.i,c.state,['降水异常下降','粮食产出下降','人口增长与稳定度受压']);
+      if(shortage>.3 && randKey(w.seed,'famine',y,c.i)<.08){const loss=c.population*Math.min(.12,shortage*.08);c.population-=loss;c.stability=clamp(c.stability-6);event(w,y,'famine','粮食不足引发饥荒',c.i,c.state,['人口超过当地承载能力','粮食不足','死亡与外迁增加']);}
+    }
+    // 2 迁移：只比较四邻，保持计算轻量
+    const delta=new Float64Array(N);
+    for(const c of r){if(!c.land||c.population<8)continue; const ns=neighbors(c.i).map(n=>r[n]).filter(n=>n.land); if(!ns.length)continue;
+      const score=q=>q.food*.32+q.wealth/(q.population+50)*16+q.stability*.3+q.transport*.14;
+      let best=c,bestS=score(c); for(const n of ns){const s=score(n); if(s>bestS+8){best=n;bestS=s;}}
+      if(best!==c){const move=Math.min(c.population*.012,(bestS-score(c))*.08);delta[c.i]-=move;delta[best.i]+=move;}
+    }
+    for(let i=0;i<N;i++)r[i].population=Math.max(0,r[i].population+delta[i]);
+    // 3 城市形成
+    for(const c of r){if(c.land&&!c.city&&c.population>3800&&c.trade>55){c.city=true;c.cityYear=y;event(w,y,'city','新的城市形成',c.i,c.state,['人口超过城市阈值','粮食存在剩余','交通与贸易条件较好']);}}
+    // 4 国家聚合与军力
+    updateAggregates(w,y,false);
+    // 5 每 8 年处理边境竞争/战争；宏观而非 RTS
+    if(y%8===0) resolveStateCompetition(w,y);
+    // 6 每 25 年处理低稳定度分裂倾向
+    if(y%25===0) resolveRevolts(w,y);
+    w.year=y; saveSnapshot(w);
+  }
+  function updateAggregates(w,y,initial){
+    for(const s of w.states){s.population=0;s.wealth=0;s.military=0;s.stability=0;s._count=0;}
+    for(const c of w.regions){if(!c.land||c.state<0)continue; const s=w.states[c.state]; if(!s||!s.alive)continue; s.population+=c.population; s.wealth+=c.wealth; s.stability+=c.stability;s._count++;}
+    for(const s of w.states){if(!s.alive)continue; s.stability=s._count?s.stability/s._count:0; s.military=Math.sqrt(Math.max(0,s.population))*Math.sqrt(Math.max(0,s.wealth+1))*(.45+s.stability/140); if(!initial && s.population<90){s.alive=false;event(w,y,'collapse',`${s.name}失去有效国家组织`,-1,s.id,['人口与财富基础不足','长期维持国家机构失败']);}}
+    for(const c of w.regions){if(c.land&&c.state>=0){const s=w.states[c.state]; c.military=s?.alive?s.military/(s._count||1):0;}}
+  }
+  function borderPairs(w){const pairs=new Map(),r=w.regions; for(const c of r){if(!c.land||c.state<0)continue; for(const n of neighbors(c.i)){const d=r[n]; if(d.land&&d.state>=0&&d.state!==c.state){const a=Math.min(c.state,d.state),b=Math.max(c.state,d.state),key=a+'-'+b;if(!pairs.has(key))pairs.set(key,{a,b,borders:[]});pairs.get(key).borders.push([c.i,d.i]);}}}return [...pairs.values()];}
+  function resolveStateCompetition(w,y){
+    const r=w.regions;
+    for(const p of borderPairs(w)){
+      const A=w.states[p.a],B=w.states[p.b]; if(!A?.alive||!B?.alive)continue;
+      const tension=(A.wealth+B.wealth>0?Math.abs(A.wealth-B.wealth)/(A.wealth+B.wealth):0)*25 + (100-(A.stability+B.stability)/2)*.22 + randKey(w.seed,'tension',y,p.a,p.b)*28;
+      if(tension<34)continue;
+      const attackA=A.military*(.85+randKey(w.seed,'warA',y,p.a,p.b)*.3), attackB=B.military*(.85+randKey(w.seed,'warB',y,p.a,p.b)*.3);
+      const winner=attackA>=attackB?A:B, loser=winner===A?B:A;
+      const border=p.borders.filter(([i,j])=>r[i].state===loser.id||r[j].state===loser.id);
+      if(!border.length)continue;
+      const pair=border[Math.floor(randKey(w.seed,'borderPick',y,p.a,p.b)*border.length)];
+      const target=r[pair[0]].state===loser.id?r[pair[0]]:r[pair[1]];
+      const defense=1+target.elev/90;
+      const ratio=(winner.military+1)/(loser.military*defense+1);
+      if(ratio>1.08){target.state=winner.id; target.stability=clamp(target.stability-9); winner.wars++; loser.wars++; event(w,y,'war',`${winner.name}在边境冲突中夺取一块地区`,target.i,winner.id,['边境紧张度升高','有效军力与补给优势','目标地区地形防御不足']);}
+    }
+  }
+  function resolveRevolts(w,y){
+    const r=w.regions;
+    for(const s of w.states){if(!s.alive||s.stability>34)continue; const cells=r.filter(c=>c.land&&c.state===s.id); if(cells.length<8)continue;
+      const cap=r[s.capital]; let far=cells.sort((a,b)=>Math.hypot(b.x-cap.x,b.y-cap.y)-Math.hypot(a.x-cap.x,a.y-cap.y))[0];
+      if(randKey(w.seed,'revolt',y,s.id)<.34){far.stability=clamp(far.stability+18); event(w,y,'revolt',`${s.name}远离首都的地区发生叛乱`,far.i,s.id,['国家平均稳定度过低','地区距离首都较远','统治成本增加']);}
+    }
+  }
+  function runTo(w,target){while(w.year<target)simulateYear(w);}
+  function cloneAtYear(base,year){
+    // 由同 seed 重新精确推演到指定年，以确保不是近似快照。
+    const nw=createWorld(base.seed); runTo(nw,year); return nw;
+  }
+  function applyInterventionAndFork(){
+    if(selected<0||!world.regions[selected]?.land){alert('请先点击一个陆地区域。');return;}
+    const year=+$('yearSlider').value;
+    const baseAt=cloneAtYear(world,year); const c=baseAt.regions[selected];
+    const de=+$('elevDelta').value, dr=+$('rainDelta').value, dm=+$('mineralDelta').value, dt=+$('techDelta').value;
+    c.elev=clamp(c.elev+de); c.rain=clamp(c.rain+dr); c.mineral=clamp(c.mineral+dm); c.agriTech=clamp(c.agriTech+dt);
+    c.temp=clamp(c.temp-de*.15); c.water=clamp(c.water+dr*.55); c.fertility=clamp(c.fertility+dr*.18-de*.12); c.transport=clamp(c.transport-de*.25);
+    baseAt.intervention={year,region:selected,de,dr,dm,dt};
+    event(baseAt,year,'intervention','用户进行了反事实干预',selected,c.state,[`海拔 ${de>=0?'+':''}${de}`,`降水 ${dr>=0?'+':''}${dr}`,`矿产 ${dm>=0?'+':''}${dm}`,`农业技术 ${dt>=0?'+':''}${dt}`]);
+    runTo(baseAt,MAX_YEAR); if(world.year<MAX_YEAR)runTo(world,MAX_YEAR); forkWorld=baseAt; compareOn=true; $('compareBox').hidden=false; $('yearSlider').value=MAX_YEAR; render();
+  }
+  function colorScale(v,a,b){const t=clamp((v-a)/(b-a),0,1); const h=220-(220*t); return `hsl(${h} 65% ${28+30*t}%)`;}
+  function draw(canvas,w,year,layer,highlight=true){
+    const ctx=canvas.getContext('2d'); const cw=canvas.width/W,ch=canvas.height/H; ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#07111b';ctx.fillRect(0,0,canvas.width,canvas.height);
+    const snap=snapshotAt(w,year); if(!snap)return;
+    for(let i=0;i<N;i++){
+      const base=w.regions[i], s=snap.regions[i], x=base.x*cw,y=base.y*ch;
+      let fill='#081b2d'; if(base.land){
+        if(layer==='terrain') fill=colorScale(base.elev,5,95);
+        if(layer==='rain') fill=colorScale(s.rain,10,95);
+        if(layer==='population') fill=colorScale(Math.log10(1+s.population)*28,0,100);
+        if(layer==='wealth') fill=colorScale(Math.log10(1+s.wealth)*24,0,100);
+        if(layer==='stability') fill=colorScale(s.stability,0,100);
+        if(layer==='military') fill=colorScale(Math.log10(1+s.military)*24,0,100);
+        if(layer==='states') fill=s.state>=0?(w.states[s.state]?.color||'#556'): '#4a5568';
+      }
+      ctx.fillStyle=fill;ctx.fillRect(x,y,cw+.6,ch+.6);
+      if(s.city&&base.land){ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+cw/2,y+ch/2,Math.max(1.4,cw*.11),0,Math.PI*2);ctx.fill();}
+    }
+    // 海岸线/国界
+    ctx.lineWidth=.6; ctx.strokeStyle='rgba(255,255,255,.15)';
+    for(const c of w.regions){if(!c.land)continue; const s=snap.regions[c.i]; const x=c.x*cw,y=c.y*ch; for(const n of neighbors(c.i)){const nb=w.regions[n],sn=snap.regions[n]; if(!nb.land || (layer==='states'&&sn.state!==s.state)){ctx.beginPath(); if(nb.x<c.x){ctx.moveTo(x,y);ctx.lineTo(x,y+ch)} else if(nb.x>c.x){ctx.moveTo(x+cw,y);ctx.lineTo(x+cw,y+ch)} else if(nb.y<c.y){ctx.moveTo(x,y);ctx.lineTo(x+cw,y)} else {ctx.moveTo(x,y+ch);ctx.lineTo(x+cw,y+ch)} ctx.stroke();}}
+    }
+    if(highlight&&selected>=0){const c=w.regions[selected];ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(c.x*cw+1,c.y*ch+1,cw-2,ch-2);}
+  }
+  function updateRegionInfo(){
+    if(selected<0||!world.regions[selected]?.land){$('regionInfo').innerHTML='<span class="muted">点击地图上的陆地区域。</span>';return;}
+    const year=+$('yearSlider').value, snap=snapshotAt(world,year), c=world.regions[selected], s=snap.regions[selected], state=s.state>=0?world.states[s.state]:null;
+    $('regionInfo').innerHTML=`
+      <div class="kv"><span>坐标</span><b>${c.x}, ${c.y}</b></div>
+      <div class="kv"><span>国家</span><b>${state?.name||'无'}</b></div>
+      <div class="kv"><span>海拔</span><b>${c.elev.toFixed(0)}</b></div>
+      <div class="kv"><span>温度适宜度</span><b>${c.temp.toFixed(0)}</b></div>
+      <div class="kv"><span>降水</span><b>${s.rain.toFixed(0)}</b></div>
+      <div class="kv"><span>肥力</span><b>${c.fertility.toFixed(0)}</b></div>
+      <div class="kv"><span>水资源</span><b>${c.water.toFixed(0)}</b></div>
+      <div class="kv"><span>矿产</span><b>${s.mineral.toFixed(0)}</b></div>
+      <div class="kv"><span>人口</span><b>${Math.round(s.population).toLocaleString()}</b></div>
+      <div class="kv"><span>财富</span><b>${Math.round(s.wealth).toLocaleString()}</b></div>
+      <div class="kv"><span>稳定度</span><b>${s.stability.toFixed(0)}</b></div>
+      <div class="kv"><span>城市</span><b>${s.city?'是':'否'}</b></div>`;
+  }
+  function updateWorldStats(){
+    const year=+$('yearSlider').value, snap=snapshotAt(world,year); let pop=0,wealth=0,cities=0; for(const s of snap.regions){pop+=s.population;wealth+=s.wealth;if(s.city)cities++;}
+    const alive=snap.states.filter(s=>s.alive).length;
+    $('worldStats').innerHTML=`
+      <div class="stat"><b>${(world.landRatio*100).toFixed(1)}%</b><span>陆地比例</span></div>
+      <div class="stat"><b>${alive}</b><span>存续国家</span></div>
+      <div class="stat"><b>${Math.round(pop).toLocaleString()}</b><span>总人口指数</span></div>
+      <div class="stat"><b>${cities}</b><span>城市</span></div>`;
+  }
+  function updateEvents(){
+    const year=+$('yearSlider').value; let list=world.events.filter(e=>e.year<=year&&e.year>=year-25&&(selected<0||e.region===selected||e.region<0)).slice(-8).reverse();
+    if(!list.length){$('eventList').innerHTML='<span class="muted">当前附近暂无重大事件。</span>';return;}
+    $('eventList').innerHTML=list.map(e=>`<div class="event"><strong>${e.year} 年 · ${e.title}</strong><span class="muted">${e.type}</span><div class="why">为什么：${e.causes.join(' → ')}</div></div>`).join('');
+  }
+  function updateDiffSummary(){
+    const box=$('diffSummary');
+    if(!compareOn||!forkWorld){box.hidden=true;return;}
+    const a=snapshotAt(world,MAX_YEAR), b=snapshotAt(forkWorld,MAX_YEAR);
+    let popA=0,popB=0,wealthA=0,wealthB=0,citiesA=0,citiesB=0,changed=0;
+    for(let i=0;i<N;i++){const x=a.regions[i],y=b.regions[i];popA+=x.population;popB+=y.population;wealthA+=x.wealth;wealthB+=y.wealth;if(x.city)citiesA++;if(y.city)citiesB++;if(x.state!==y.state)changed++;}
+    const pct=(x,y)=>x?((y-x)/x*100):0; const iv=forkWorld.intervention;
+    box.hidden=false;
+    box.innerHTML=`<b>历史分歧</b> · 干预发生在 ${iv.year} 年。到 300 年：人口 ${pct(popA,popB)>=0?'+':''}${pct(popA,popB).toFixed(1)}%，财富 ${pct(wealthA,wealthB)>=0?'+':''}${pct(wealthA,wealthB).toFixed(1)}%，城市 ${citiesA} → ${citiesB}，有 ${changed} 个陆地区域的国家归属与原历史不同。<br><span class="muted">这里比较的是同一 seed、同一随机事件序列；分歧来自你施加的海拔/降水/矿产/农业技术变化及其后续因果传播。</span>`;
+  }
+  function render(){
+    if(!world)return; const year=+$('yearSlider').value; $('yearLabel').textContent=year; $('simStatus').textContent=`年份 ${year}`; $('landRatioPill').textContent=`陆地 ${(world.landRatio*100).toFixed(1)}%`;
+    draw($('worldCanvas'),world,year,activeLayer,true);
+    $('legendTitle').textContent=layers[activeLayer];
+    if(compareOn&&forkWorld){draw($('baseCanvas'),world,MAX_YEAR,activeLayer,false);draw($('forkCanvas'),forkWorld,MAX_YEAR,activeLayer,false);}
+    updateRegionInfo();updateWorldStats();updateEvents();updateDiffSummary();
+  }
+  function buildTabs(){const box=$('layerTabs');box.innerHTML='';for(const [k,v] of Object.entries(layers)){const b=document.createElement('button');b.textContent=v;b.className=k===activeLayer?'active':'';b.onclick=()=>{activeLayer=k;buildTabs();render();};box.appendChild(b);}}
+  function bindRange(id,out){$(id).addEventListener('input',()=>$(out).textContent=(+$(id).value>=0?'+':'')+$(id).value);$(out).textContent='+0';}
+  $('worldCanvas').addEventListener('click',e=>{const rect=e.currentTarget.getBoundingClientRect();const x=Math.floor((e.clientX-rect.left)/rect.width*W),y=Math.floor((e.clientY-rect.top)/rect.height*H);const i=idx(clamp(x,0,W-1),clamp(y,0,H-1));selected=world.regions[i].land?i:-1;render();});
+  $('newWorldBtn').onclick=()=>{const seed=+$('seedInput').value||723891;world=createWorld(seed);forkWorld=null;selected=-1;compareOn=false;$('compareBox').hidden=true;$('yearSlider').value=0;render();};
+  $('runBtn').onclick=()=>{runTo(world,MAX_YEAR);$('yearSlider').value=MAX_YEAR;render();};
+  $('yearSlider').oninput=()=>render();
+  $('playBtn').onclick=()=>{playing=!playing;$('playBtn').textContent=playing?'暂停':'播放'; if(playing){clearInterval(playTimer);playTimer=setInterval(()=>{let y=+$('yearSlider').value;if(y>=Math.min(world.year,MAX_YEAR)){playing=false;$('playBtn').textContent='播放';clearInterval(playTimer);return;}$('yearSlider').value=y+1;render();},55);}else clearInterval(playTimer);};
+  $('forkBtn').onclick=applyInterventionAndFork;
+  $('clearForkBtn').onclick=()=>{forkWorld=null;compareOn=false;$('compareBox').hidden=true;$('diffSummary').hidden=true;render();};
+  $('compareBtn').onclick=()=>{if(!forkWorld){alert('先对某个区域进行一次反事实干预。');return;}compareOn=!compareOn;$('compareBox').hidden=!compareOn;render();};
+  bindRange('elevDelta','elevOut');bindRange('rainDelta','rainOut');bindRange('mineralDelta','mineralOut');bindRange('techDelta','techOut');
+  buildTabs(); world=createWorld(+$('seedInput').value); render();
+})();
+</script>
+</body>
+</html>
