@@ -22,8 +22,8 @@ h2{font-size:19px;margin:0 0 6px}h3{font-size:15px;margin:0 0 8px}p{margin:5px 0
 .navtitle{font-size:12px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin:2px 0 9px}.navgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.navbtn{min-height:50px;text-align:left;border:1px solid var(--line);background:var(--panel2);border-radius:11px;padding:9px 10px;font-weight:750;font-size:14px}.navbtn.major{font-size:15px;min-height:56px;background:#2d332d}.navbtn.active{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}.navbtn span{display:block;color:var(--muted);font-weight:500;font-size:11px;margin-top:2px}.navbtn:hover{background:#323832}
 .statusCard{border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:11px;margin:8px 0}.statusCard.attn{border-color:#7f6a3e;background:#302c22}.statusCard.bad{border-color:#6e4440;background:#302322}.statusCard.ok{border-color:#4c6548;background:#243025}.statusTitle{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:14px;font-weight:800}.statusBody{font-size:12px;line-height:1.55;color:#d6d0c5;margin-top:6px}
 .progress{height:8px;border-radius:99px;background:#171b18;border:1px solid #394039;overflow:hidden}.progress>i{display:block;height:100%;background:var(--gold);width:0}.kv{display:grid;grid-template-columns:1fr auto;gap:5px 10px;align-items:center;font-size:13px}.kv b{font-size:14px}.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 7px;border-radius:99px;border:1px solid var(--line);background:#1d211e;font-size:11px;margin:2px}.tag.ok{border-color:#526b4d;color:#bcd7b7}.tag.warn{border-color:#7a623e;color:#e2c28e}.tag.bad{border-color:#754641;color:#e0aaa4}
-.mapPanel{position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);background:#1d211e}.mapToolbar{display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid var(--line);background:#202520;flex-wrap:wrap}.mapToolbar .legend{font-size:11px;color:var(--muted);margin-left:auto}.mapWrap{position:relative;min-height:0;background:#b9b19f;overflow:hidden}.mapBaseImg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block;z-index:0;pointer-events:none}.mapBaseImg[hidden]{display:none}.mapWrap svg{position:relative;z-index:1;width:100%;height:100%;display:block;min-height:430px;background:transparent}.mapOverlay{position:absolute;z-index:4;left:12px;top:12px;max-width:340px;background:rgba(25,29,26,.92);border:1px solid #555e55;border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);pointer-events:none}.mapOverlay h3{margin:0 0 3px}.mapOverlay .small{line-height:1.45}.mapToast{position:absolute;z-index:5;right:12px;bottom:12px;max-width:320px;background:rgba(25,29,26,.94);border:1px solid #555e55;border-radius:12px;padding:9px 11px;font-size:12px;display:none}
-.region{cursor:pointer;transition:filter .12s}.region:hover{filter:brightness(1.06)}.parcel{fill:none;stroke:#4d4a42;stroke-width:1.7;stroke-dasharray:7 5;opacity:.8;pointer-events:none}.parcelLabel{font-size:12px;fill:#3f403a;font-weight:800;opacity:.8;pointer-events:none}.road{stroke:#766c5c;stroke-width:5;fill:none;opacity:.75}.river{stroke:#718ea0;stroke-width:8;fill:none;opacity:.55}.cityDot{fill:#292d28;stroke:#efe5d2;stroke-width:2}.portDot{fill:#4f7389;stroke:#e9dfcc;stroke-width:2}.mapLabel{font-size:12px;font-weight:800;fill:#252725;paint-order:stroke;stroke:#ddd4c0;stroke-width:3px;stroke-linejoin:round}.marker text{font-size:10px;font-weight:800;paint-order:stroke;stroke:#e7decc;stroke-width:2px;fill:#232522}.marker .mine{fill:#5c5952;stroke:#262824;stroke-width:1}.marker .oil{fill:#5b513f;stroke:#262824;stroke-width:1}.marker .farm{fill:#7f8a58;stroke:#3c4534;stroke-width:1}.marker .project{fill:#b19350;stroke:#4a3e23;stroke-width:1}.marker .factory{fill:#7b6658;stroke:#382f2a;stroke-width:1}.facilityImage{pointer-events:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.42))}.assetStatus{display:inline-flex;gap:7px;align-items:center;margin-top:5px;font-size:10px;color:#c9c6bc}.assetStatus .ok{color:#bad7b4}.assetStatus .bad{color:#e0aaa4}
+.mapPanel{position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);background:#1d211e}.mapToolbar{display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid var(--line);background:#202520;flex-wrap:wrap}.mapSelectWrap{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}.mapSelectWrap .select{min-width:122px;padding:6px 8px;background:#181c19}.mapToolbar .legend{font-size:11px;color:var(--muted);margin-left:auto}.mapWrap{position:relative;min-height:0;background:#b9b19f;overflow:hidden}.mapBaseImg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block;z-index:0;pointer-events:none}.mapBaseImg[hidden]{display:none}.mapWrap svg{position:relative;z-index:1;width:100%;height:100%;display:block;min-height:430px;background:transparent}.mapOverlay{position:absolute;z-index:4;left:12px;top:12px;max-width:340px;background:rgba(25,29,26,.92);border:1px solid #555e55;border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);pointer-events:none}.mapOverlay h3{margin:0 0 3px}.mapOverlay .small{line-height:1.45}.mapToast{position:absolute;z-index:5;right:12px;bottom:12px;max-width:320px;background:rgba(25,29,26,.94);border:1px solid #555e55;border-radius:12px;padding:9px 11px;font-size:12px;display:none}
+.region{cursor:pointer;fill:transparent;stroke:transparent;stroke-width:2;pointer-events:all;transition:stroke .12s,fill .12s}.region:hover{stroke:rgba(92,78,47,.42);stroke-dasharray:7 6;fill:rgba(255,255,255,.025)}.parcel{fill:rgba(184,155,89,.035);stroke:#826d3f;stroke-width:4;stroke-dasharray:10 7;opacity:.95;pointer-events:none}.parcelLabel{font-size:13px;fill:#51452f;font-weight:900;opacity:.95;pointer-events:none;paint-order:stroke;stroke:#e5dcc7;stroke-width:3px}.road{stroke:#766c5c;stroke-width:5;fill:none;opacity:.75}.river{stroke:#718ea0;stroke-width:8;fill:none;opacity:.55}.cityLayer{pointer-events:none}.cityMarker{pointer-events:all;cursor:pointer}.cityMarker .cityHalo{fill:rgba(238,229,210,.16);stroke:rgba(238,229,210,.55);stroke-width:1.5}.cityMarker .cityCore{fill:#292d28;stroke:#f0e6d3;stroke-width:2.3}.cityMarker.port .cityCore{fill:#4f7389}.cityMarker.selected .cityHalo{fill:rgba(184,155,89,.18);stroke:#b89b59;stroke-width:2.4}.cityMarker .cityLabel{font-size:12px;font-weight:900;fill:#252725;paint-order:stroke;stroke:#e6ddca;stroke-width:3px;stroke-linejoin:round}.cityMarker .cityMeta{font-size:9px;font-weight:800;fill:#514c43;paint-order:stroke;stroke:#e6ddca;stroke-width:2px}.mapLabel{font-size:12px;font-weight:800;fill:#252725;paint-order:stroke;stroke:#ddd4c0;stroke-width:3px;stroke-linejoin:round}.marker text{font-size:10px;font-weight:800;paint-order:stroke;stroke:#e7decc;stroke-width:2px;fill:#232522}.marker .mine{fill:#5c5952;stroke:#262824;stroke-width:1}.marker .oil{fill:#5b513f;stroke:#262824;stroke-width:1}.marker .farm{fill:#7f8a58;stroke:#3c4534;stroke-width:1}.marker .project{fill:#b19350;stroke:#4a3e23;stroke-width:1}.marker .factory{fill:#7b6658;stroke:#382f2a;stroke-width:1}.facilityImage{pointer-events:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.42))}.assetStatus{display:inline-flex;gap:7px;align-items:center;margin-top:5px;font-size:10px;color:#c9c6bc}.assetStatus .ok{color:#bad7b4}.assetStatus .bad{color:#e0aaa4}
 .rightHead{position:sticky;top:0;background:var(--panel);z-index:3;padding-bottom:9px;border-bottom:1px solid var(--line);margin-bottom:10px}.actionRow{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.btn{border:1px solid var(--line);background:var(--panel3);padding:8px 10px;border-radius:9px;font-size:12px;font-weight:750}.btn.primary{background:#6f5d35;border-color:#8b7441}.btn.ok{background:#3e573d;border-color:#557553}.btn.bad{background:#5c3835;border-color:#7b4a46}.btn:disabled{opacity:.42;cursor:not-allowed}.select{background:#181c19;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:12px;max-width:100%}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.metric{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px}.metric .label{font-size:11px;color:var(--muted)}.metric .value{font-size:19px;font-weight:850;margin-top:3px}.metric .subv{font-size:10px;color:var(--muted);margin-top:3px}.list{display:grid;gap:7px}.row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px;border:1px solid var(--line);background:var(--panel2);border-radius:9px}.row .left{min-width:0}.row .title{font-size:13px;font-weight:800}.row .desc{font-size:11px;color:var(--muted);line-height:1.45;margin-top:2px}.row .right{font-size:12px;text-align:right;white-space:nowrap}
 .tutorial{margin-top:12px;border:1px solid #79643d;background:#2d2a22;border-radius:12px;padding:10px}.tutorialHead{display:flex;justify-content:space-between;align-items:center;gap:8px}.tutorialStep{font-size:11px;color:#d9c28d;font-weight:800}.tutorialText{font-size:12px;line-height:1.55;margin-top:6px}.tutorial .hint{margin-top:7px;padding:7px 8px;background:#1f211d;border-radius:8px;border:1px solid #4d4c40}
@@ -59,10 +59,11 @@ h2{font-size:19px;margin:0 0 6px}h3{font-size:15px;margin:0 0 8px}p{margin:5px 0
     </div></aside>
     <section class="panel mapPanel">
       <div class="mapToolbar">
-        <button class="btn" id="toggleParcelsBtn">地质分区：开</button>
+        <label class="mapSelectWrap"><span id="mapSelectLabel">底图</span><select class="select" id="mapSelect" aria-label="World map template"></select></label>
+        <button class="btn" id="toggleParcelsBtn">选中地质轮廓：开</button>
         <button class="btn" id="toggleResourcesBtn">资源：开</button>
         <button class="btn" id="toggleProjectsBtn">项目：开</button>
-        <div class="legend" id="mapLegend">虚线=地质 Parcel · 圆点=城市 · 方块/三角=设施</div>
+        <div class="legend" id="mapLegend">点击区域仅显示当前 Parcel 轮廓 · 城市始终显示 · 图形=设施/项目</div>
       </div>
       <div class="mapWrap">
         <img id="mapBaseImg" class="mapBaseImg" alt="World terrain map" draggable="false" />
@@ -78,8 +79,8 @@ h2{font-size:19px;margin:0 0 6px}h3{font-size:15px;margin:0 0 8px}p{margin:5px 0
 <script>
 (function(){'use strict';
 const T={
- zh:{priority:'优先操作',systems:'国家系统',advance:'推进 1 年',save:'保存',load:'读取',construction:'建设',resources:'资源开发',agriculture:'农业',trade:'国际贸易',diplomacy:'外交',economy:'经济',society:'人口社会',events:'情境事件',debug:'自检',dashboard:'总览',year:'年份',treasury:'国库',population:'人口',foodDays:'粮食库存',selected:'当前区域',noRegion:'全国',parcelsOn:'地质分区：开',parcelsOff:'地质分区：关',resOn:'资源：开',resOff:'资源：关',projOn:'项目：开',projOff:'项目：关',legend:'虚线=地质 Parcel · 圆点=城市/口岸 · 图形=设施/项目',currentSituation:'当前局势',noMajorIssue:'当前没有高优先级危机。',tutorial:'新手导入',skip:'跳过',stage:'阶段',explore:'勘探资源',build:'建设',upgrade:'升级',road:'道路',housing:'住房',power:'电力',motor2:'机动车化 II',motor2Desc:'消耗石油换取道路运输效率；必须真正有年度燃料供给。',discovered:'已发现',hidden:'未确认',potential:'禀赋',start:'开始',years:'年',cost:'成本',progress:'进度',inventory:'库存',localPrice:'地方价格',labor:'劳动力',transport:'运输',energy:'能源',demand:'需求',finance:'资金',cropPlan:'本年种植计划',autoPlan:'保持默认',wheat:'小麦',rice:'水稻',maize:'玉米',vegetables:'蔬菜',chooseCrop:'选择作物',tradeGap:'国内缺口',getQuote:'获取报价',import5:'进口 5',port:'口岸',route:'路线',pending:'待交付',relation:'关系',dependency:'依赖',economyRules:'企业真实约束',fiscal:'财政闭环',localMarkets:'地方市场',age:'年龄结构',housingPressure:'住房压力',migration:'迁移',eventEvidence:'因果证据',selfcheck:'运行自检',restart:'重开',exportState:'导出状态',moduleOrder:'年度模块顺序',pass:'通过',fail:'失败',allVisible:'界面可见性',projects:'项目',facilities:'设施',maintenance:'维护',oilLoop:'石油循环',roadEfficiency:'道路效率',fuelUse:'年度燃油',city:'城市',borderPort:'边境口岸',aiCountries:'AI 国家',aiRule:'AI 只能通过与玩家相同的建设、贸易、投资与关税入口行动。',explainOnly:'系统只解释结果，不再指示唯一操作。',language:'语言'},
- en:{priority:'Priority actions',systems:'National systems',advance:'Advance 1 year',save:'Save',load:'Load',construction:'Build',resources:'Resources',agriculture:'Agriculture',trade:'International trade',diplomacy:'Diplomacy',economy:'Economy',society:'Population',events:'Situations',debug:'Self-check',dashboard:'Overview',year:'Year',treasury:'Treasury',population:'Population',foodDays:'Food stock',selected:'Selected region',noRegion:'National',parcelsOn:'Geology parcels: ON',parcelsOff:'Geology parcels: OFF',resOn:'Resources: ON',resOff:'Resources: OFF',projOn:'Projects: ON',projOff:'Projects: OFF',legend:'Dashed = geology parcel · dots = city/port · symbols = facilities/projects',currentSituation:'Current situation',noMajorIssue:'No high-priority crisis at present.',tutorial:'Onboarding',skip:'Skip',stage:'Stage',explore:'Explore resources',build:'Build',upgrade:'Upgrade',road:'Roads',housing:'Housing',power:'Power',motor2:'Motorization II',motor2Desc:'Consumes oil for higher road throughput; annual fuel supply is required.',discovered:'Discovered',hidden:'Unconfirmed',potential:'Endowment',start:'Start',years:'yr',cost:'Cost',progress:'Progress',inventory:'Inventory',localPrice:'Local price',labor:'Labor',transport:'Transport',energy:'Energy',demand:'Demand',finance:'Finance',cropPlan:'Crop plan for this year',autoPlan:'Keep default',wheat:'Wheat',rice:'Rice',maize:'Maize',vegetables:'Vegetables',chooseCrop:'Choose crop',tradeGap:'Domestic gap',getQuote:'Get quotes',import5:'Import 5',port:'Port',route:'Route',pending:'Pending',relation:'Relation',dependency:'Dependence',economyRules:'Real enterprise constraints',fiscal:'Fiscal loop',localMarkets:'Local markets',age:'Age structure',housingPressure:'Housing pressure',migration:'Migration',eventEvidence:'Causal evidence',selfcheck:'Run self-check',restart:'Restart',exportState:'Export state',moduleOrder:'Annual module order',pass:'PASS',fail:'FAIL',allVisible:'UI visibility',projects:'Projects',facilities:'Facilities',maintenance:'Maintenance',oilLoop:'Oil loop',roadEfficiency:'Road efficiency',fuelUse:'Annual fuel use',city:'City',borderPort:'Border port',aiCountries:'AI countries',aiRule:'AI acts only through the same construction, trade, investment and tariff entry points as the player.',explainOnly:'The system explains outcomes but no longer prescribes a single action.',language:'Language'}
+ zh:{priority:'优先操作',systems:'国家系统',advance:'推进 1 年',save:'保存',load:'读取',construction:'建设',resources:'资源开发',agriculture:'农业',trade:'国际贸易',diplomacy:'外交',economy:'经济',society:'人口社会',events:'情境事件',debug:'自检',dashboard:'总览',year:'年份',treasury:'国库',population:'人口',foodDays:'粮食库存',selected:'当前区域',noRegion:'全国',parcelsOn:'选中地质轮廓：开',parcelsOff:'选中地质轮廓：关',resOn:'资源：开',resOff:'资源：关',projOn:'项目：开',projOff:'项目：关',legend:'点击区域仅显示当前 Parcel 轮廓 · 城市始终显示 · 图形=设施/项目',currentSituation:'当前局势',noMajorIssue:'当前没有高优先级危机。',tutorial:'新手导入',skip:'跳过',stage:'阶段',explore:'勘探资源',build:'建设',upgrade:'升级',road:'道路',housing:'住房',power:'电力',motor2:'机动车化 II',motor2Desc:'消耗石油换取道路运输效率；必须真正有年度燃料供给。',discovered:'已发现',hidden:'未确认',potential:'禀赋',start:'开始',years:'年',cost:'成本',progress:'进度',inventory:'库存',localPrice:'地方价格',labor:'劳动力',transport:'运输',energy:'能源',demand:'需求',finance:'资金',cropPlan:'本年种植计划',autoPlan:'保持默认',wheat:'小麦',rice:'水稻',maize:'玉米',vegetables:'蔬菜',chooseCrop:'选择作物',tradeGap:'国内缺口',getQuote:'获取报价',import5:'进口 5',port:'口岸',route:'路线',pending:'待交付',relation:'关系',dependency:'依赖',economyRules:'企业真实约束',fiscal:'财政闭环',localMarkets:'地方市场',age:'年龄结构',housingPressure:'住房压力',migration:'迁移',eventEvidence:'因果证据',selfcheck:'运行自检',restart:'重开',exportState:'导出状态',moduleOrder:'年度模块顺序',pass:'通过',fail:'失败',allVisible:'界面可见性',projects:'项目',facilities:'设施',maintenance:'维护',oilLoop:'石油循环',roadEfficiency:'道路效率',fuelUse:'年度燃油',city:'城市',borderPort:'边境口岸',aiCountries:'AI 国家',aiRule:'AI 只能通过与玩家相同的建设、贸易、投资与关税入口行动。',explainOnly:'系统只解释结果，不再指示唯一操作。',language:'语言'},
+ en:{priority:'Priority actions',systems:'National systems',advance:'Advance 1 year',save:'Save',load:'Load',construction:'Build',resources:'Resources',agriculture:'Agriculture',trade:'International trade',diplomacy:'Diplomacy',economy:'Economy',society:'Population',events:'Situations',debug:'Self-check',dashboard:'Overview',year:'Year',treasury:'Treasury',population:'Population',foodDays:'Food stock',selected:'Selected region',noRegion:'National',parcelsOn:'Selected parcel outline: ON',parcelsOff:'Selected parcel outline: OFF',resOn:'Resources: ON',resOff:'Resources: OFF',projOn:'Projects: ON',projOff:'Projects: OFF',legend:'Only the selected parcel is outlined · cities stay visible · symbols = facilities/projects',currentSituation:'Current situation',noMajorIssue:'No high-priority crisis at present.',tutorial:'Onboarding',skip:'Skip',stage:'Stage',explore:'Explore resources',build:'Build',upgrade:'Upgrade',road:'Roads',housing:'Housing',power:'Power',motor2:'Motorization II',motor2Desc:'Consumes oil for higher road throughput; annual fuel supply is required.',discovered:'Discovered',hidden:'Unconfirmed',potential:'Endowment',start:'Start',years:'yr',cost:'Cost',progress:'Progress',inventory:'Inventory',localPrice:'Local price',labor:'Labor',transport:'Transport',energy:'Energy',demand:'Demand',finance:'Finance',cropPlan:'Crop plan for this year',autoPlan:'Keep default',wheat:'Wheat',rice:'Rice',maize:'Maize',vegetables:'Vegetables',chooseCrop:'Choose crop',tradeGap:'Domestic gap',getQuote:'Get quotes',import5:'Import 5',port:'Port',route:'Route',pending:'Pending',relation:'Relation',dependency:'Dependence',economyRules:'Real enterprise constraints',fiscal:'Fiscal loop',localMarkets:'Local markets',age:'Age structure',housingPressure:'Housing pressure',migration:'Migration',eventEvidence:'Causal evidence',selfcheck:'Run self-check',restart:'Restart',exportState:'Export state',moduleOrder:'Annual module order',pass:'PASS',fail:'FAIL',allVisible:'UI visibility',projects:'Projects',facilities:'Facilities',maintenance:'Maintenance',oilLoop:'Oil loop',roadEfficiency:'Road efficiency',fuelUse:'Annual fuel use',city:'City',borderPort:'Border port',aiCountries:'AI countries',aiRule:'AI acts only through the same construction, trade, investment and tariff entry points as the player.',explainOnly:'The system explains outcomes but no longer prescribes a single action.',language:'Language'}
 };
 const regionDefs=[
  {id:'R1',zh:'北岭',en:'North Ridge',x:35,y:55,w:250,h:205,terrain:'mountain',fill:'#b9b19d',pop:420,road:42,power:58,housing:445,port:false,resources:{coal:3,iron:2,oil:1}},
@@ -167,9 +168,23 @@ function assetByKey(key){
  }
  return best;
 }
+function mapAssetForKey(key){
+ const maps=window.__BE_MAP_IMAGES__||{};
+ return normalizeAsset(maps[key])||assetByKey(key);
+}
+function mapSlots(){
+ return Array.from({length:10},(_,i)=>{const key=`map_${String(i+1).padStart(2,'0')}`;const url=mapAssetForKey(key);return {key,url,available:!!url};});
+}
 function mapAsset(){
- const maps=window.__BE_MAP_IMAGES__||{},key=S.mapKey||S.worldMapKey||'map_01';
- return normalizeAsset(maps[key])||normalizeAsset(maps.map_01)||normalizeAsset(maps[Object.keys(maps)[0]])||assetByKey(key);
+ const key=S.mapKey||S.worldMapKey||'map_01',direct=mapAssetForKey(key);
+ if(direct)return direct;
+ const slot=mapSlots().find(x=>x.available);
+ return slot?slot.url:null;
+}
+function setMap(key){
+ const slot=mapSlots().find(x=>x.key===key);
+ if(!slot||!slot.available){toast(S.lang==='zh'?`底图 ${key} 的图片资源未加载。`:`Map asset ${key} is not loaded.`);return false}
+ S.mapKey=key;renderMap();runSelfCheck(false);return true;
 }
 const VISUAL_STAGES={
  coal_mine:['small_coal_mine','mechanized_coal_mine','industrial_coal_mine','deep_mining_complex','national_mining_complex'],
@@ -347,49 +362,75 @@ function renderSituation(){const issues=visibleIssues();$('situationBox').innerH
 function renderTutorial(){const t=S.tutorial;if(t.skipped)return $('tutorialBox').innerHTML='';let text='',hint='';if(t.stage===1){text=S.lang==='zh'?'强制操作教学：先在地图选一个区域，然后点击“资源开发”，对任一资源执行一次勘探。':'Guided action: select a region, open Resources, and explore one resource.';hint=S.lang==='zh'?'点击这里：资源开发 → 勘探。':'Click: Resources → Explore.'}else if(t.stage===2){text=S.lang==='zh'?'弱操作教学：系统不再规定唯一按钮。你可以用国内建设，也可以通过贸易缓解缺口。':'Soft guidance: there is no single required button. Domestic investment or trade can solve shortages.';hint=S.lang==='zh'?'你可以通过贸易解决粮食问题。':'You can use trade to solve food shortages.'}else if(t.stage===3){text=S.lang==='zh'?'目标教学：解决粮食问题。你自己选择农业、贸易或其他组合。':'Goal tutorial: resolve the food problem using any combination of tools.';hint=S.lang==='zh'?'目标：把粮食库存恢复到年需求的 90% 以上。':'Goal: restore food stock to at least 90% of annual need.'}else{text=tr('explainOnly');hint=S.lang==='zh'?'正式游戏：系统只显示因果与可用工具。':'Full game: the system only explains causes and available tools.'}
  $('tutorialBox').innerHTML=`<div class="tutorial"><div class="tutorialHead"><b>${tr('tutorial')}</b><span class="tutorialStep">${tr('stage')} ${t.stage}/4</span></div><div class="tutorialText">${text}</div><div class="hint">${hint}</div><div class="actionRow"><button class="btn" id="skipTut">${tr('skip')}</button></div></div>`;$('skipTut').onclick=()=>{S.tutorial.skipped=true;renderTutorial()}}
 function renderMap(){
- const svg=$('worldMap'),base=$('mapBaseImg'),baseUrl=mapAsset();
+ const svg=$('worldMap'),base=$('mapBaseImg'),slots=mapSlots();
+ let current=slots.find(x=>x.key===(S.mapKey||'map_01')&&x.available);
+ if(!current)current=slots.find(x=>x.available)||null;
+ if(current)S.mapKey=current.key;
+ const baseUrl=current?current.url:null;
  if(baseUrl){if(base.getAttribute('src')!==baseUrl)base.setAttribute('src',baseUrl);base.hidden=false;base.dataset.assetOk='1'}
  else{base.hidden=true;base.removeAttribute('src');base.dataset.assetOk='0'}
- let h=`<rect x="0" y="0" width="900" height="620" fill="${baseUrl?'transparent':'#b7b09f'}"/><path class="river" d="M110,0 C180,120 120,180 230,265 C340,350 315,430 420,620"/><path class="road" d="M120,160 C250,150 360,165 470,165 S720,160 820,180"/><path class="road" d="M180,430 C330,400 470,420 680,430"/>`;
- for(const r of S.regions){
-   h+=`<rect class="region" data-rid="${r.id}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="28" fill="${r.fill}" fill-opacity="${baseUrl?'.18':'1'}" stroke="${S.selectedRegion===r.id?'#5c4e2f':'#8f8777'}" stroke-width="${S.selectedRegion===r.id?5:2}"/>`;
-   if(S.showParcels)h+=`<rect class="parcel" x="${r.x+12}" y="${r.y+12}" width="${r.w-24}" height="${r.h-24}" rx="20"/><text class="parcelLabel" x="${r.x+22}" y="${r.y+35}">Parcel ${r.id.slice(1)}</text>`;
-   const cx=r.x+r.w*.52,cy=r.y+r.h*.55;
-   h+=`<circle class="${r.port?'portDot':'cityDot'}" cx="${cx}" cy="${cy}" r="${r.city?9:5}"/><text class="mapLabel" x="${cx+13}" y="${cy+4}">${esc(rn(r))}</text>`;
-   if(S.showResources){
-     let oy=-42;
+ const mapSelect=$('mapSelect');
+ if(mapSelect){
+   mapSelect.innerHTML=slots.map((x,i)=>`<option value="${x.key}" ${x.key===S.mapKey?'selected':''} ${x.available?'':'disabled'}>${S.lang==='zh'?'底图':'Map'} ${String(i+1).padStart(2,'0')}${x.available?'':(S.lang==='zh'?'（资源缺失）':' (asset missing)')}</option>`).join('');
+   mapSelect.value=S.mapKey;
+   mapSelect.onchange=e=>setMap(e.target.value);
+ }
+ $('mapSelectLabel').textContent=S.lang==='zh'?'底图':'Map';
+ let h=`<rect x="0" y="0" width="900" height="620" fill="${baseUrl?'transparent':'#b7b09f'}"/>`;
+ if(!baseUrl)h+=`<path class="river" d="M110,0 C180,120 120,180 230,265 C340,350 315,430 420,620"/><path class="road" d="M120,160 C250,150 360,165 470,165 S720,160 820,180"/><path class="road" d="M180,430 C330,400 470,420 680,430"/>`;
+ // Six invisible region hitboxes: no permanent parcel grid.
+ h+=`<g id="regionHitLayer">`;
+ for(const r of S.regions)h+=`<rect class="region" data-rid="${r.id}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="28"/>`;
+ h+=`</g>`;
+ // Only the current selection is outlined.
+ if(S.showParcels){
+   const r=selected();
+   h+=`<g id="parcelSelectionLayer"><rect class="parcel" data-selected-parcel="${r.id}" x="${r.x+8}" y="${r.y+8}" width="${r.w-16}" height="${r.h-16}" rx="22"/><text class="parcelLabel" x="${r.x+20}" y="${r.y+32}">Parcel ${esc(r.id.slice(1))}</text></g>`;
+ }
+ if(S.showResources){
+   h+=`<g id="resourceLayer">`;
+   for(const r of S.regions){
+     const cx=r.x+r.w*.52,cy=r.y+r.h*.55;let oy=-46;
      for(const g of ['oil','coal','iron'])if(r.discovered[g]){
        const shape=g==='oil'?`<circle class="oil" cx="${cx-24}" cy="${cy+oy}" r="7"/>`:`<polygon class="mine" points="${cx-31},${cy+oy+8} ${cx-24},${cy+oy-7} ${cx-17},${cy+oy+8}"/>`;
        h+=`<g class="marker">${shape}<text x="${cx-12}" y="${cy+oy+4}">${esc(gn(g))}</text></g>`;oy+=18;
      }
    }
+   h+=`</g>`;
  }
  if(S.showProjects){
+   h+=`<g id="projectLayer">`;
    for(const p of S.projects.filter(p=>p.status==='building')){
      const r=region(p.regionId),x=r.x+r.w*.18,y=r.y+r.h*.78,done=p.totalYears-p.remaining;
      h+=`<g class="marker"><rect class="project" x="${x-8}" y="${y-8}" width="16" height="16" rx="3"/><text x="${x+12}" y="${y+4}">${esc(fn(p.type))} ${done}/${p.totalYears}</text></g>`;
    }
+   h+=`</g>`;
  }
  let imageCount=0,activeCount=0;
+ h+=`<g id="facilityLayer">`;
  for(const f of S.facilities.filter(f=>f.status==='active')){
    activeCount++;
    const r=region(f.regionId),local=S.facilities.filter(x=>x.regionId===r.id&&x.status==='active'),idx=local.indexOf(f),x=r.x+r.w*.72,y=r.y+r.h*(.33+idx*.11),z=1+Math.min(4,f.level-1)*.13;
-   const asset=facilityAssetUrl(f);
-   let shape;
-   if(asset){
-     imageCount++;
-     const iw=(f.type==='farm'?58:68)*z,ih=(f.type==='farm'?42:54)*z;
-     shape=`<image class="facilityImage" data-fid="${attr(f.id)}" href="${attr(asset)}" x="${x-iw/2}" y="${y-ih/2}" width="${iw}" height="${ih}" preserveAspectRatio="xMidYMid meet"/>`;
-   }else{
-     shape=f.type==='farm'?`<rect class="farm" x="${x-8*z}" y="${y-6*z}" width="${16*z}" height="${12*z}"/>`:(f.type==='oil_field'?`<circle class="oil" cx="${x}" cy="${y}" r="${7*z}"/>`:`<polygon class="factory" points="${x-8*z},${y+8*z} ${x-8*z},${y-7*z} ${x+8*z},${y-3*z} ${x+8*z},${y+8*z}"/>`);
-   }
+   const asset=facilityAssetUrl(f);let shape;
+   if(asset){imageCount++;const iw=(f.type==='farm'?58:68)*z,ih=(f.type==='farm'?42:54)*z;shape=`<image class="facilityImage" data-fid="${attr(f.id)}" href="${attr(asset)}" x="${x-iw/2}" y="${y-ih/2}" width="${iw}" height="${ih}" preserveAspectRatio="xMidYMid meet"/>`}
+   else shape=f.type==='farm'?`<rect class="farm" x="${x-8*z}" y="${y-6*z}" width="${16*z}" height="${12*z}"/>`:(f.type==='oil_field'?`<circle class="oil" cx="${x}" cy="${y}" r="${7*z}"/>`:`<polygon class="factory" points="${x-8*z},${y+8*z} ${x-8*z},${y-7*z} ${x+8*z},${y-3*z} ${x+8*z},${y+8*z}"/>`);
    const up=f.upgradeRemaining>0?` ↑${f.upgradeTotal-f.upgradeRemaining}/${f.upgradeTotal}`:'';
    h+=`<g class="marker">${shape}<text x="${x+11*z}" y="${y+4}">${esc(fn(f.type))} L${f.level}${up}</text></g>`;
  }
- svg.innerHTML=h;svg.dataset.facilityImages=String(imageCount);svg.dataset.activeFacilities=String(activeCount);
+ h+=`</g>`;
+ // Independent city layer is appended last so re-rendering agriculture/resources never erases cities.
+ const visibleCities=S.regions.filter(r=>r.city||r.port);
+ h+=`<g id="cityLayer" class="cityLayer">`;
+ for(const r of visibleCities){
+   const cx=r.x+r.w*.52,cy=r.y+r.h*.55,size=r.pop>=700?11:r.pop>=500?10:9,selectedCls=S.selectedRegion===r.id?' selected':'',portCls=r.port?' port':'';
+   h+=`<g class="cityMarker${selectedCls}${portCls}" data-city-rid="${r.id}" transform="translate(${cx} ${cy})"><circle class="cityHalo" r="${size+6}"/><circle class="cityCore" r="${size}"/><text class="cityLabel" x="${size+8}" y="-1">${esc(rn(r))}</text><text class="cityMeta" x="${size+8}" y="12">${r.port?(S.lang==='zh'?'口岸城市':'PORT CITY'):(S.lang==='zh'?'城市':'CITY')} · ${Math.round(r.pop)}</text></g>`;
+ }
+ h+=`</g>`;
+ svg.innerHTML=h;svg.dataset.facilityImages=String(imageCount);svg.dataset.activeFacilities=String(activeCount);svg.dataset.cityMarkers=String(visibleCities.length);
  svg.querySelectorAll('.region').forEach(el=>el.onclick=()=>setRegion(el.dataset.rid));
- const r=selected(),mapCount=Object.keys(window.__BE_MAP_IMAGES__||{}).length;
- $('mapOverlay').innerHTML=`<h3>${rn(r)} ${r.port?`<span class="tag">${tr('borderPort')}</span>`:''}</h3><div class="small">${tr('population')} ${r.pop.toFixed(0)} · ${tr('road')} ${r.road.toFixed(0)} · ${tr('power')} ${r.power.toFixed(0)} · ${tr('housing')} ${r.housing.toFixed(0)}</div><div class="small">${tr('roadEfficiency')} ×${S.stats.roadEff.toFixed(2)} · ${tr('selected')} ${r.id}</div><div class="assetStatus"><span class="${baseUrl?'ok':'bad'}">${S.lang==='zh'?'总地图':'Map'} ${baseUrl?'✓':'×'}${mapCount?` (${mapCount})`:''}</span><span class="${imageCount||!activeCount?'ok':'bad'}">${S.lang==='zh'?'设施图片':'Facility images'} ${imageCount}/${activeCount}</span></div>`;
+ svg.querySelectorAll('.cityMarker').forEach(el=>el.onclick=e=>{e.stopPropagation();setRegion(el.dataset.cityRid)});
+ const r=selected(),availableMaps=slots.filter(x=>x.available).length;
+ $('mapOverlay').innerHTML=`<h3>${rn(r)} ${r.port?`<span class="tag">${tr('borderPort')}</span>`:''}</h3><div class="small">${tr('population')} ${r.pop.toFixed(0)} · ${tr('road')} ${r.road.toFixed(0)} · ${tr('power')} ${r.power.toFixed(0)} · ${tr('housing')} ${r.housing.toFixed(0)}</div><div class="small">${tr('roadEfficiency')} ×${S.stats.roadEff.toFixed(2)} · ${tr('selected')} ${r.id}</div><div class="assetStatus"><span class="${baseUrl?'ok':'bad'}">${S.lang==='zh'?'总地图':'Map'} ${baseUrl?'✓':'×'} · ${S.mapKey} · ${availableMaps}/10</span><span class="${imageCount||!activeCount?'ok':'bad'}">${S.lang==='zh'?'设施图片':'Facility images'} ${imageCount}/${activeCount}</span><span class="ok">${S.lang==='zh'?'城市':'Cities'} ${visibleCities.length}</span></div>`;
  $('toggleParcelsBtn').textContent=S.showParcels?tr('parcelsOn'):tr('parcelsOff');$('toggleResourcesBtn').textContent=S.showResources?tr('resOn'):tr('resOff');$('toggleProjectsBtn').textContent=S.showProjects?tr('projOn'):tr('projOff');$('mapLegend').textContent=tr('legend');
 }
 function sectionHead(title,sub=''){return `<div class="rightHead"><h2>${title}</h2>${sub?`<div class="small muted">${sub}</div>`:''}</div>`}
@@ -411,12 +452,13 @@ function runSelfCheck(show=true){
  add('AI uses trade rules',typeof module5ExecuteExport==='function','M6 calls Module 5 export transaction API');
  add('No duplicate trade settlement',S.tradeContracts.every(c=>!(c.status==='delivered'&&!c.settled)),'delivered contracts are settled exactly once');
  add('Oil → road loop',S.motorization.level<2||typeof S.stats.roadEff==='number',`motor L${S.motorization.level}, roadEff=${S.stats.roadEff}`);
- const mapPack=window.__BE_MAP_IMAGES__||{},mapReady=!!normalizeAsset(mapPack[S.mapKey||'map_01']||mapPack.map_01||mapPack[Object.keys(mapPack)[0]]);
- add('Existing map asset package',Object.keys(mapPack).length>=1,`maps=${Object.keys(mapPack).length}; source=world-causality-lab-assets-*.js`);
+ const mapPack=window.__BE_MAP_IMAGES__||{},slots=mapSlots(),availableMaps=slots.filter(x=>x.available).length,mapReady=!!mapAssetForKey(S.mapKey||'map_01');
+ add('Ten-map selector restored',$('mapSelect')&&$('mapSelect').options.length===10,`slots=${$('mapSelect')?.options.length||0}; available=${availableMaps}/10; source=world-causality-lab-assets-*.js`);
  add('Full terrain image visible',mapReady&&$('mapBaseImg')&&!$('mapBaseImg').hidden,`map=${S.mapKey||'map_01'}; visible=${!$('mapBaseImg').hidden}`);
  const resolvable=S.facilities.filter(f=>f.status==='active'&&!!facilityAssetUrl(f)).length,shown=$('worldMap').querySelectorAll('.facilityImage').length;
  add('Facility image assets visible',shown===resolvable&&shown>0,`resolved=${resolvable}; rendered=${shown}; active=${S.facilities.filter(f=>f.status==='active').length}`);
- add('Parcel visibility',!!$('worldMap').querySelector('.parcel')===S.showParcels,`visible=${$('worldMap').querySelectorAll('.parcel').length}`);
+ add('Single selected parcel outline',$('worldMap').querySelectorAll('.parcel').length===(S.showParcels?1:0),`outlines=${$('worldMap').querySelectorAll('.parcel').length}; invisible hitboxes=${$('worldMap').querySelectorAll('.region').length}`);
+ add('Independent city layer',!!$('worldMap').querySelector('#cityLayer')&&$('worldMap').querySelectorAll('.cityMarker').length===S.regions.filter(r=>r.city||r.port).length,`cities=${$('worldMap').querySelectorAll('.cityMarker').length}`);
  add('Resource UI visibility',document.querySelector('[data-view="resources"]')!==null,'resource entry exists');
  add('Agriculture UI visibility',document.querySelector('[data-view="agriculture"]')!==null,'agriculture entry exists');
  add('Trade UI visibility',document.querySelector('[data-view="trade"]')!==null,'trade entry exists');
@@ -433,12 +475,29 @@ function renderContext(){let html='';if(S.view==='dashboard')html=renderDashboar
  if($('motor2Btn'))$('motor2Btn').onclick=startMotor2;if($('cropSelect'))$('cropSelect').onchange=e=>setCrop(S.selectedRegion,e.target.value);if($('runCheck'))$('runCheck').onclick=()=>runSelfCheck(true);if($('restartBtn'))$('restartBtn').onclick=()=>{if(confirm(S.lang==='zh'?'重开会清除当前局面，确定？':'Restart and clear the current run?')){S=makeInitialState();render()}};if($('exportBtn'))$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='world-lab-state.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 }
 function render(){document.documentElement.lang=S.lang==='zh'?'zh-CN':'en';document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=tr(el.dataset.i18n));renderTop();renderNav();renderSituation();renderTutorial();renderMap();renderContext()}
+function runRerenderRegression(){
+ const originalMap=S.mapKey,originalRegion=S.selectedRegion,results=[];
+ const check=(name,ok,detail='')=>results.push({name,ok:!!ok,detail});
+ try{
+   const expectedCities=S.regions.filter(r=>r.city||r.port).length;
+   for(const slot of mapSlots()){
+     if(!slot.available)continue;
+     S.mapKey=slot.key;renderMap();
+     check(`map switch ${slot.key}`,$('mapBaseImg')&&!$('mapBaseImg').hidden&&$('worldMap').querySelectorAll('.cityMarker').length===expectedCities,`cities=${$('worldMap').querySelectorAll('.cityMarker').length}`);
+   }
+   for(const r of S.regions){S.selectedRegion=r.id;renderMap();check(`parcel ${r.id}`,$('worldMap').querySelectorAll('.parcel').length===(S.showParcels?1:0)&&$('worldMap').querySelector(`[data-selected-parcel="${r.id}"]`)!=null,'single-outline');}
+   renderMap();
+   check('facility layer survives rerender',$('worldMap').querySelector('#facilityLayer')!=null,`facilityImages=${$('worldMap').querySelectorAll('.facilityImage').length}`);
+   check('city layer survives rerender',$('worldMap').querySelectorAll('.cityMarker').length===S.regions.filter(r=>r.city||r.port).length,`cities=${$('worldMap').querySelectorAll('.cityMarker').length}`);
+ }finally{S.mapKey=originalMap;S.selectedRegion=originalRegion;renderMap();}
+ window.__BE_RERENDER_REGRESSION__=results;return results;
+}
 function save(){localStorage.setItem('world-causality-lab-v1-save',JSON.stringify(S));toast(S.lang==='zh'?'已保存到本机浏览器。':'Saved in this browser.')}
 function load(){try{const raw=localStorage.getItem('world-causality-lab-v1-save');if(!raw){toast(S.lang==='zh'?'没有找到存档。':'No save found.');return}S=JSON.parse(raw);if(!S.mapKey)S.mapKey='map_01';__assetIndex=null;render();toast(S.lang==='zh'?'存档已读取。':'Save loaded.')}catch(e){showError(e)}}
 function showError(e){const el=$('errorbar');el.style.display='block';el.textContent='Runtime error: '+(e&&e.message?e.message:String(e));window.__BE_RUNTIME_ERROR__=String(e)}
 window.addEventListener('error',e=>showError(e.error||e.message));window.addEventListener('unhandledrejection',e=>showError(e.reason));
 $('langBtn').onclick=()=>{S.lang=S.lang==='zh'?'en':'zh';render()};$('saveBtn').onclick=save;$('loadBtn').onclick=load;$('advanceBtn').onclick=advanceYear;$('toggleParcelsBtn').onclick=()=>{S.showParcels=!S.showParcels;renderMap();runSelfCheck(false)};$('toggleResourcesBtn').onclick=()=>{S.showResources=!S.showResources;renderMap()};$('toggleProjectsBtn').onclick=()=>{S.showProjects=!S.showProjects;renderMap();runSelfCheck(false)};
-window.WorldLab={getState:()=>deepClone(S),advanceYear,setView,setRegion,startProject,explore,getQuotes,orderImport,runSelfCheck,refreshAssets:()=>{__assetIndex=null;buildAssetIndex(true);renderMap();return runSelfCheck(false)},reset:()=>{S=makeInitialState();render()}};
+window.WorldLab={getState:()=>deepClone(S),advanceYear,setView,setRegion,setMap,startProject,explore,getQuotes,orderImport,runSelfCheck,runRerenderRegression,refreshAssets:()=>{__assetIndex=null;buildAssetIndex(true);renderMap();return runSelfCheck(false)},reset:()=>{S=makeInitialState();render()}};
 render();runSelfCheck(false);renderContext();
 })();
 </script>
