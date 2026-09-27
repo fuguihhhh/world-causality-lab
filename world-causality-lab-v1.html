@@ -22,8 +22,8 @@ h2{font-size:19px;margin:0 0 6px}h3{font-size:15px;margin:0 0 8px}p{margin:5px 0
 .navtitle{font-size:12px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin:2px 0 9px}.navgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.navbtn{min-height:50px;text-align:left;border:1px solid var(--line);background:var(--panel2);border-radius:11px;padding:9px 10px;font-weight:750;font-size:14px}.navbtn.major{font-size:15px;min-height:56px;background:#2d332d}.navbtn.active{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}.navbtn span{display:block;color:var(--muted);font-weight:500;font-size:11px;margin-top:2px}.navbtn:hover{background:#323832}
 .statusCard{border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:11px;margin:8px 0}.statusCard.attn{border-color:#7f6a3e;background:#302c22}.statusCard.bad{border-color:#6e4440;background:#302322}.statusCard.ok{border-color:#4c6548;background:#243025}.statusTitle{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:14px;font-weight:800}.statusBody{font-size:12px;line-height:1.55;color:#d6d0c5;margin-top:6px}
 .progress{height:8px;border-radius:99px;background:#171b18;border:1px solid #394039;overflow:hidden}.progress>i{display:block;height:100%;background:var(--gold);width:0}.kv{display:grid;grid-template-columns:1fr auto;gap:5px 10px;align-items:center;font-size:13px}.kv b{font-size:14px}.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 7px;border-radius:99px;border:1px solid var(--line);background:#1d211e;font-size:11px;margin:2px}.tag.ok{border-color:#526b4d;color:#bcd7b7}.tag.warn{border-color:#7a623e;color:#e2c28e}.tag.bad{border-color:#754641;color:#e0aaa4}
-.mapPanel{position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);background:#1d211e}.mapToolbar{display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid var(--line);background:#202520;flex-wrap:wrap}.mapToolbar .legend{font-size:11px;color:var(--muted);margin-left:auto}.mapWrap{position:relative;min-height:0;background:#b9b19f}.mapWrap svg{width:100%;height:100%;display:block;min-height:430px}.mapOverlay{position:absolute;left:12px;top:12px;max-width:320px;background:rgba(25,29,26,.92);border:1px solid #555e55;border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);pointer-events:none}.mapOverlay h3{margin:0 0 3px}.mapOverlay .small{line-height:1.45}.mapToast{position:absolute;right:12px;bottom:12px;max-width:320px;background:rgba(25,29,26,.94);border:1px solid #555e55;border-radius:12px;padding:9px 11px;font-size:12px;display:none}
-.region{cursor:pointer;transition:filter .12s}.region:hover{filter:brightness(1.06)}.parcel{fill:none;stroke:#4d4a42;stroke-width:1.7;stroke-dasharray:7 5;opacity:.8;pointer-events:none}.parcelLabel{font-size:12px;fill:#3f403a;font-weight:800;opacity:.8;pointer-events:none}.road{stroke:#766c5c;stroke-width:5;fill:none;opacity:.75}.river{stroke:#718ea0;stroke-width:8;fill:none;opacity:.55}.cityDot{fill:#292d28;stroke:#efe5d2;stroke-width:2}.portDot{fill:#4f7389;stroke:#e9dfcc;stroke-width:2}.mapLabel{font-size:12px;font-weight:800;fill:#252725;paint-order:stroke;stroke:#ddd4c0;stroke-width:3px;stroke-linejoin:round}.marker text{font-size:10px;font-weight:800;paint-order:stroke;stroke:#e7decc;stroke-width:2px;fill:#232522}.marker .mine{fill:#5c5952;stroke:#262824;stroke-width:1}.marker .oil{fill:#5b513f;stroke:#262824;stroke-width:1}.marker .farm{fill:#7f8a58;stroke:#3c4534;stroke-width:1}.marker .project{fill:#b19350;stroke:#4a3e23;stroke-width:1}.marker .factory{fill:#7b6658;stroke:#382f2a;stroke-width:1}
+.mapPanel{position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);background:#1d211e}.mapToolbar{display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid var(--line);background:#202520;flex-wrap:wrap}.mapToolbar .legend{font-size:11px;color:var(--muted);margin-left:auto}.mapWrap{position:relative;min-height:0;background:#b9b19f;overflow:hidden}.mapBaseImg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block;z-index:0;pointer-events:none}.mapBaseImg[hidden]{display:none}.mapWrap svg{position:relative;z-index:1;width:100%;height:100%;display:block;min-height:430px;background:transparent}.mapOverlay{position:absolute;z-index:4;left:12px;top:12px;max-width:340px;background:rgba(25,29,26,.92);border:1px solid #555e55;border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);pointer-events:none}.mapOverlay h3{margin:0 0 3px}.mapOverlay .small{line-height:1.45}.mapToast{position:absolute;z-index:5;right:12px;bottom:12px;max-width:320px;background:rgba(25,29,26,.94);border:1px solid #555e55;border-radius:12px;padding:9px 11px;font-size:12px;display:none}
+.region{cursor:pointer;transition:filter .12s}.region:hover{filter:brightness(1.06)}.parcel{fill:none;stroke:#4d4a42;stroke-width:1.7;stroke-dasharray:7 5;opacity:.8;pointer-events:none}.parcelLabel{font-size:12px;fill:#3f403a;font-weight:800;opacity:.8;pointer-events:none}.road{stroke:#766c5c;stroke-width:5;fill:none;opacity:.75}.river{stroke:#718ea0;stroke-width:8;fill:none;opacity:.55}.cityDot{fill:#292d28;stroke:#efe5d2;stroke-width:2}.portDot{fill:#4f7389;stroke:#e9dfcc;stroke-width:2}.mapLabel{font-size:12px;font-weight:800;fill:#252725;paint-order:stroke;stroke:#ddd4c0;stroke-width:3px;stroke-linejoin:round}.marker text{font-size:10px;font-weight:800;paint-order:stroke;stroke:#e7decc;stroke-width:2px;fill:#232522}.marker .mine{fill:#5c5952;stroke:#262824;stroke-width:1}.marker .oil{fill:#5b513f;stroke:#262824;stroke-width:1}.marker .farm{fill:#7f8a58;stroke:#3c4534;stroke-width:1}.marker .project{fill:#b19350;stroke:#4a3e23;stroke-width:1}.marker .factory{fill:#7b6658;stroke:#382f2a;stroke-width:1}.facilityImage{pointer-events:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.42))}.assetStatus{display:inline-flex;gap:7px;align-items:center;margin-top:5px;font-size:10px;color:#c9c6bc}.assetStatus .ok{color:#bad7b4}.assetStatus .bad{color:#e0aaa4}
 .rightHead{position:sticky;top:0;background:var(--panel);z-index:3;padding-bottom:9px;border-bottom:1px solid var(--line);margin-bottom:10px}.actionRow{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.btn{border:1px solid var(--line);background:var(--panel3);padding:8px 10px;border-radius:9px;font-size:12px;font-weight:750}.btn.primary{background:#6f5d35;border-color:#8b7441}.btn.ok{background:#3e573d;border-color:#557553}.btn.bad{background:#5c3835;border-color:#7b4a46}.btn:disabled{opacity:.42;cursor:not-allowed}.select{background:#181c19;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:12px;max-width:100%}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.metric{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px}.metric .label{font-size:11px;color:var(--muted)}.metric .value{font-size:19px;font-weight:850;margin-top:3px}.metric .subv{font-size:10px;color:var(--muted);margin-top:3px}.list{display:grid;gap:7px}.row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px;border:1px solid var(--line);background:var(--panel2);border-radius:9px}.row .left{min-width:0}.row .title{font-size:13px;font-weight:800}.row .desc{font-size:11px;color:var(--muted);line-height:1.45;margin-top:2px}.row .right{font-size:12px;text-align:right;white-space:nowrap}
 .tutorial{margin-top:12px;border:1px solid #79643d;background:#2d2a22;border-radius:12px;padding:10px}.tutorialHead{display:flex;justify-content:space-between;align-items:center;gap:8px}.tutorialStep{font-size:11px;color:#d9c28d;font-weight:800}.tutorialText{font-size:12px;line-height:1.55;margin-top:6px}.tutorial .hint{margin-top:7px;padding:7px 8px;background:#1f211d;border-radius:8px;border:1px solid #4d4c40}
@@ -32,6 +32,8 @@ h2{font-size:19px;margin:0 0 6px}h3{font-size:15px;margin:0 0 8px}p{margin:5px 0
 @media(max-width:1100px){.layout{grid-template-columns:220px minmax(380px,1fr) 320px}.brand{font-size:18px}.navbtn{font-size:13px}}
 @media(max-width:900px){.app{height:auto;min-height:100vh;overflow:auto}.layout{grid-template-columns:1fr;overflow:visible}.panel{min-height:unset}.leftPanel .scroll{max-height:none}.mapPanel{height:580px}.rightPanel{min-height:500px}.topbar{position:sticky;top:0;z-index:20}.topmetrics{display:none}}
 </style>
+<script src="./world-causality-lab-assets-1.js"></script>
+<script src="./world-causality-lab-assets-2.js"></script>
 </head>
 <body>
 <div class="app">
@@ -63,7 +65,8 @@ h2{font-size:19px;margin:0 0 6px}h3{font-size:15px;margin:0 0 8px}p{margin:5px 0
         <div class="legend" id="mapLegend">虚线=地质 Parcel · 圆点=城市 · 方块/三角=设施</div>
       </div>
       <div class="mapWrap">
-        <svg id="worldMap" viewBox="0 0 900 620" preserveAspectRatio="xMidYMid meet" aria-label="World map"></svg>
+        <img id="mapBaseImg" class="mapBaseImg" alt="World terrain map" draggable="false" />
+        <svg id="worldMap" viewBox="0 0 900 620" preserveAspectRatio="none" aria-label="World map"></svg>
         <div class="mapOverlay" id="mapOverlay"></div>
         <div class="mapToast" id="mapToast"></div>
       </div>
@@ -97,7 +100,7 @@ const projectDefs={
 function deepClone(x){return JSON.parse(JSON.stringify(x));}
 function makeInitialState(){
  const regions=regionDefs.map((r,i)=>({...deepClone(r),labor:Math.round(r.pop*.53),age:{young:.21,working:.64,old:.15},prices:{food:1,oil:1.2,coal:.9,iron:1.1,goods:1.4},inventory:{food:40+i*3,oil:6+(i%2)*2,coal:10+i,iron:7+(i%3),goods:14},discovered:{oil:false,coal:false,iron:false},crop:'auto',lastCrop:'wheat',satisfaction:62,unemployment:6,city:i!==5,cityTrend:0}));
- return {version:'2026.09.27-integrated',year:2026,turn:0,lang:'zh',treasury:150,debt:0,taxRate:.18,view:'dashboard',selectedRegion:'R2',showParcels:true,showResources:true,showProjects:true,motorization:{level:1,upgrading:false,progress:0,years:2,cost:22,annualFuel:4,lastFuelMet:false},regions,projects:[],facilities:[{id:'F0',type:'farm',regionId:'R3',level:1,status:'active',condition:92},{id:'F1',type:'farm',regionId:'R4',level:1,status:'active',condition:88}],tradeContracts:[],quotes:{},relations:{Meridian:58,Norvia:44,Aster:51},dependencies:{food:0,oil:0,coal:0,iron:0,goods:0},ai:[{id:'Meridian',money:180,profile:'commercial',stock:{food:80,oil:65,coal:35,iron:20,goods:60}},{id:'Norvia',money:150,profile:'industrial',stock:{food:45,oil:35,coal:90,iron:75,goods:40}},{id:'Aster',money:130,profile:'agrarian',stock:{food:110,oil:18,coal:25,iron:15,goods:28}}],events:[],history:[],fiscal:{tax:0,tradeTax:0,spending:0},stats:{gdp:310,unemployment:6.3,roadEff:1,foodNeed:0},tutorial:{stage:1,skipped:false,completed:[]},debug:{last:[]},sequenceLog:[]};
+ return {version:'2026.09.27-integrated-assets',mapKey:'map_01',year:2026,turn:0,lang:'zh',treasury:150,debt:0,taxRate:.18,view:'dashboard',selectedRegion:'R2',showParcels:true,showResources:true,showProjects:true,motorization:{level:1,upgrading:false,progress:0,years:2,cost:22,annualFuel:4,lastFuelMet:false},regions,projects:[],facilities:[{id:'F0',type:'farm',regionId:'R3',level:1,status:'active',condition:92},{id:'F1',type:'farm',regionId:'R4',level:1,status:'active',condition:88}],tradeContracts:[],quotes:{},relations:{Meridian:58,Norvia:44,Aster:51},dependencies:{food:0,oil:0,coal:0,iron:0,goods:0},ai:[{id:'Meridian',money:180,profile:'commercial',stock:{food:80,oil:65,coal:35,iron:20,goods:60}},{id:'Norvia',money:150,profile:'industrial',stock:{food:45,oil:35,coal:90,iron:75,goods:40}},{id:'Aster',money:130,profile:'agrarian',stock:{food:110,oil:18,coal:25,iron:15,goods:28}}],events:[],history:[],fiscal:{tax:0,tradeTax:0,spending:0},stats:{gdp:310,unemployment:6.3,roadEff:1,foodNeed:0},tutorial:{stage:1,skipped:false,completed:[]},debug:{last:[]},sequenceLog:[]};
 }
 let S=makeInitialState();
 let eventSeq=1;
@@ -109,6 +112,107 @@ function fn(type){return facilityNames[S.lang][type]||type}
 function money(n){return (Math.round(n*10)/10).toFixed(1)}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function attr(s){return String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+function normalizeAsset(v){
+ if(typeof v==='string' && (/^data:image\//i.test(v)||/^blob:/i.test(v)||/^https?:/i.test(v)||/^\.\.?\//.test(v)||/\.(png|webp|jpe?g|svg)(\?|#|$)/i.test(v)))return v;
+ if(v&&typeof v==='object'){for(const k of ['src','url','uri','data','image','href','dataUri','dataURL']){const x=v[k];if(typeof x==='string'&&x)return normalizeAsset(x)}}
+ return null;
+}
+let __assetIndex=null;
+function assetRoots(){
+ const roots=[];
+ const add=(name,v)=>{if(v&&(typeof v==='object'||typeof v==='function'))roots.push({name,v})};
+ add('__BE_MAP_IMAGES__',window.__BE_MAP_IMAGES__);
+ for(const k of ['__BE_MODULE2_ASSETS__','__BE_MODEL2_ASSETS__','__BE_DEVELOPMENT_ASSETS__','__BE_ASSETS__','MODULE2_ASSETS','MODEL2_ASSETS','BorderEpochAssets','WorldLabAssets']){try{add(k,window[k])}catch(_){}}
+ try{add('BorderEpoch',window.BorderEpoch)}catch(_){}
+ try{if(typeof MODULE2_ASSETS!=='undefined')add('MODULE2_ASSETS_LEXICAL',MODULE2_ASSETS)}catch(_){}
+ try{if(typeof MODEL2_ASSETS!=='undefined')add('MODEL2_ASSETS_LEXICAL',MODEL2_ASSETS)}catch(_){}
+ try{if(typeof DEVELOPMENT_ASSETS!=='undefined')add('DEVELOPMENT_ASSETS_LEXICAL',DEVELOPMENT_ASSETS)}catch(_){}
+ for(const k of Object.getOwnPropertyNames(window)){
+   if(!/(?:^__BE_|BorderEpoch|WorldLab|Asset|Assets|ImageBundle|Module2|Model2)/i.test(k))continue;
+   try{const v=window[k];if(v&&v!==window&&!(v instanceof Element))add(k,v)}catch(_){}
+ }
+ return roots;
+}
+function buildAssetIndex(force=false){
+ if(__assetIndex&&!force)return __assetIndex;
+ const index=new Map(),seen=new Set(),queue=assetRoots().map(x=>({path:x.name,v:x.v,d:0}));let visited=0;
+ while(queue.length&&visited<7000){
+   const {path,v,d}=queue.shift();visited++;
+   if(v==null)continue;
+   const direct=normalizeAsset(v);
+   if(direct){const key=path.split('.').pop();index.set(String(key).toLowerCase(),direct);index.set(path.toLowerCase(),direct);continue}
+   if((typeof v!=='object'&&typeof v!=='function')||seen.has(v)||d>4)continue;
+   seen.add(v);
+   let keys=[];try{keys=Object.keys(v).slice(0,500)}catch(_){continue}
+   for(const k of keys){
+     let child;try{child=v[k]}catch(_){continue}
+     const childPath=path+'.'+k;
+     const u=normalizeAsset(child);
+     if(u){index.set(String(k).toLowerCase(),u);index.set(childPath.toLowerCase(),u)}
+     else if(child&&d<4&&(typeof child==='object'||typeof child==='function')&&!(child instanceof Element))queue.push({path:childPath,v:child,d:d+1});
+   }
+ }
+ __assetIndex=index;return index;
+}
+function assetByKey(key){
+ if(!key)return null;
+ const norm=String(key).toLowerCase(),idx=buildAssetIndex();
+ if(idx.has(norm))return idx.get(norm);
+ for(const [k,u] of idx){if(k.endsWith('.'+norm)||k.endsWith('/'+norm))return u}
+ const tokens=norm.replace(/[^a-z0-9]+/g,' ').trim().split(/\s+/).filter(x=>x.length>1&&!['image','asset','assets','visual','level'].includes(x));
+ let best=null,bestScore=-1;
+ if(tokens.length){
+   for(const [k,u] of idx){let score=0;for(const t of tokens)if(k.includes(t))score++;if(score===tokens.length&&score>bestScore){best=u;bestScore=score}}
+ }
+ return best;
+}
+function mapAsset(){
+ const maps=window.__BE_MAP_IMAGES__||{},key=S.mapKey||S.worldMapKey||'map_01';
+ return normalizeAsset(maps[key])||normalizeAsset(maps.map_01)||normalizeAsset(maps[Object.keys(maps)[0]])||assetByKey(key);
+}
+const VISUAL_STAGES={
+ coal_mine:['small_coal_mine','mechanized_coal_mine','industrial_coal_mine','deep_mining_complex','national_mining_complex'],
+ iron_mine:['small_iron_mine','mechanized_iron_mine','industrial_iron_mine','deep_iron_complex','national_iron_complex'],
+ steel:['small_steelworks','integrated_steelworks','heavy_steel_complex','modern_steel_complex','national_steel_hub']
+};
+function visualResolverResult(f){
+ const v=window.BorderEpoch&&window.BorderEpoch.Module2Visuals;
+ if(!v)return null;
+ for(const name of ['visualAsset','resolveAsset','getAsset','facilityAsset','getFacilityAsset','visualAssetKey']){
+   const fun=v&&v[name];if(typeof fun!=='function')continue;
+   const calls=[[f,S],[f],[f.type,f.level,f.visualStage,S],[f.type,f.level]];
+   for(const args of calls){try{const out=fun.apply(v,args);const direct=normalizeAsset(out);if(direct)return direct;if(typeof out==='string'){const by=assetByKey(out);if(by)return by}}catch(_){}}
+ }
+ return null;
+}
+function facilityAssetCandidates(f){
+ const lvl=Math.max(1,Math.min(5,Number(f.level)||1)),out=[];
+ if(f.visualStage)out.push(f.visualStage);
+ if(VISUAL_STAGES[f.type])out.push(VISUAL_STAGES[f.type][Math.min(lvl,VISUAL_STAGES[f.type].length)-1]);
+ if(f.type==='oil_field'){
+   const a=[
+    ['small_oil_field','oil_field_small','oil_well','oil_field_l1'],
+    ['mechanized_oil_field','developed_oil_field','oil_field_l2','oilfield_level_2'],
+    ['industrial_oil_field','expanded_oil_field','oil_field_l3','oilfield_level_3'],
+    ['major_oil_field','integrated_oil_field','oil_field_l4','oilfield_level_4'],
+    ['national_oil_complex','giant_oil_field','oil_field_l5','oilfield_level_5']
+   ];out.push(...a[lvl-1]);
+ }
+ if(f.type==='farm'){
+   const r=region(f.regionId),crop=(r&&(r.crop!=='auto'?r.crop:r.lastCrop))||'wheat';
+   out.push(`${crop}_farm`,`${crop}_field`,`farm_${crop}`,`farmland_${crop}`,`cropland_${crop}`,'farm','farmland','cropland','agriculture');
+ }
+ const aliases={coal_mine:'coal',iron_mine:'iron',oil_field:'oil',steel:'steelworks',power:'power_plant',road:'road'};
+ out.push(`${f.type}_l${lvl}`,`${f.type}_${lvl}`,`${f.type}_level_${lvl}`,f.type);
+ if(aliases[f.type])out.push(`${aliases[f.type]}_l${lvl}`,`${aliases[f.type]}_${lvl}`,aliases[f.type]);
+ return [...new Set(out.filter(Boolean))];
+}
+function facilityAssetUrl(f){
+ const resolved=visualResolverResult(f);if(resolved)return resolved;
+ for(const k of facilityAssetCandidates(f)){const u=assetByKey(k);if(u)return u}
+ return null;
+}
 function region(id){return S.regions.find(r=>r.id===id)}
 function selected(){return region(S.selectedRegion)||S.regions[0]}
 function total(g){return S.regions.reduce((a,r)=>a+(r.inventory[g]||0),0)}
@@ -243,15 +347,49 @@ function renderSituation(){const issues=visibleIssues();$('situationBox').innerH
 function renderTutorial(){const t=S.tutorial;if(t.skipped)return $('tutorialBox').innerHTML='';let text='',hint='';if(t.stage===1){text=S.lang==='zh'?'强制操作教学：先在地图选一个区域，然后点击“资源开发”，对任一资源执行一次勘探。':'Guided action: select a region, open Resources, and explore one resource.';hint=S.lang==='zh'?'点击这里：资源开发 → 勘探。':'Click: Resources → Explore.'}else if(t.stage===2){text=S.lang==='zh'?'弱操作教学：系统不再规定唯一按钮。你可以用国内建设，也可以通过贸易缓解缺口。':'Soft guidance: there is no single required button. Domestic investment or trade can solve shortages.';hint=S.lang==='zh'?'你可以通过贸易解决粮食问题。':'You can use trade to solve food shortages.'}else if(t.stage===3){text=S.lang==='zh'?'目标教学：解决粮食问题。你自己选择农业、贸易或其他组合。':'Goal tutorial: resolve the food problem using any combination of tools.';hint=S.lang==='zh'?'目标：把粮食库存恢复到年需求的 90% 以上。':'Goal: restore food stock to at least 90% of annual need.'}else{text=tr('explainOnly');hint=S.lang==='zh'?'正式游戏：系统只显示因果与可用工具。':'Full game: the system only explains causes and available tools.'}
  $('tutorialBox').innerHTML=`<div class="tutorial"><div class="tutorialHead"><b>${tr('tutorial')}</b><span class="tutorialStep">${tr('stage')} ${t.stage}/4</span></div><div class="tutorialText">${text}</div><div class="hint">${hint}</div><div class="actionRow"><button class="btn" id="skipTut">${tr('skip')}</button></div></div>`;$('skipTut').onclick=()=>{S.tutorial.skipped=true;renderTutorial()}}
 function renderMap(){
- const svg=$('worldMap');let h=`<rect x="0" y="0" width="900" height="620" fill="#b7b09f"/><path class="river" d="M110,0 C180,120 120,180 230,265 C340,350 315,430 420,620"/><path class="road" d="M120,160 C250,150 360,165 470,165 S720,160 820,180"/><path class="road" d="M180,430 C330,400 470,420 680,430"/>`;
- for(const r of S.regions){h+=`<rect class="region" data-rid="${r.id}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="28" fill="${r.fill}" stroke="${S.selectedRegion===r.id?'#5c4e2f':'#8f8777'}" stroke-width="${S.selectedRegion===r.id?5:2}"/>`;if(S.showParcels)h+=`<rect class="parcel" x="${r.x+12}" y="${r.y+12}" width="${r.w-24}" height="${r.h-24}" rx="20"/><text class="parcelLabel" x="${r.x+22}" y="${r.y+35}">Parcel ${r.id.slice(1)}</text>`;
- const cx=r.x+r.w*.52,cy=r.y+r.h*.55;h+=`<circle class="${r.port?'portDot':'cityDot'}" cx="${cx}" cy="${cy}" r="${r.city?9:5}"/><text class="mapLabel" x="${cx+13}" y="${cy+4}">${esc(rn(r))}</text>`;
- if(S.showResources){let oy=-42;for(const g of ['oil','coal','iron'])if(r.discovered[g]){const shape=g==='oil'?`<circle class="oil" cx="${cx-24}" cy="${cy+oy}" r="7"/>`:`<polygon class="mine" points="${cx-31},${cy+oy+8} ${cx-24},${cy+oy-7} ${cx-17},${cy+oy+8}"/>`;h+=`<g class="marker">${shape}<text x="${cx-12}" y="${cy+oy+4}">${esc(gn(g))}</text></g>`;oy+=18}}
+ const svg=$('worldMap'),base=$('mapBaseImg'),baseUrl=mapAsset();
+ if(baseUrl){if(base.getAttribute('src')!==baseUrl)base.setAttribute('src',baseUrl);base.hidden=false;base.dataset.assetOk='1'}
+ else{base.hidden=true;base.removeAttribute('src');base.dataset.assetOk='0'}
+ let h=`<rect x="0" y="0" width="900" height="620" fill="${baseUrl?'transparent':'#b7b09f'}"/><path class="river" d="M110,0 C180,120 120,180 230,265 C340,350 315,430 420,620"/><path class="road" d="M120,160 C250,150 360,165 470,165 S720,160 820,180"/><path class="road" d="M180,430 C330,400 470,420 680,430"/>`;
+ for(const r of S.regions){
+   h+=`<rect class="region" data-rid="${r.id}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="28" fill="${r.fill}" fill-opacity="${baseUrl?'.18':'1'}" stroke="${S.selectedRegion===r.id?'#5c4e2f':'#8f8777'}" stroke-width="${S.selectedRegion===r.id?5:2}"/>`;
+   if(S.showParcels)h+=`<rect class="parcel" x="${r.x+12}" y="${r.y+12}" width="${r.w-24}" height="${r.h-24}" rx="20"/><text class="parcelLabel" x="${r.x+22}" y="${r.y+35}">Parcel ${r.id.slice(1)}</text>`;
+   const cx=r.x+r.w*.52,cy=r.y+r.h*.55;
+   h+=`<circle class="${r.port?'portDot':'cityDot'}" cx="${cx}" cy="${cy}" r="${r.city?9:5}"/><text class="mapLabel" x="${cx+13}" y="${cy+4}">${esc(rn(r))}</text>`;
+   if(S.showResources){
+     let oy=-42;
+     for(const g of ['oil','coal','iron'])if(r.discovered[g]){
+       const shape=g==='oil'?`<circle class="oil" cx="${cx-24}" cy="${cy+oy}" r="7"/>`:`<polygon class="mine" points="${cx-31},${cy+oy+8} ${cx-24},${cy+oy-7} ${cx-17},${cy+oy+8}"/>`;
+       h+=`<g class="marker">${shape}<text x="${cx-12}" y="${cy+oy+4}">${esc(gn(g))}</text></g>`;oy+=18;
+     }
+   }
  }
- if(S.showProjects){for(const p of S.projects.filter(p=>p.status==='building')){const r=region(p.regionId),x=r.x+r.w*.18,y=r.y+r.h*.78,done=p.totalYears-p.remaining;h+=`<g class="marker"><rect class="project" x="${x-8}" y="${y-8}" width="16" height="16" rx="3"/><text x="${x+12}" y="${y+4}">${esc(fn(p.type))} ${done}/${p.totalYears}</text></g>`}}
- for(const f of S.facilities.filter(f=>f.status==='active')){const r=region(f.regionId),idx=S.facilities.filter(x=>x.regionId===r.id&&x.status==='active').indexOf(f),x=r.x+r.w*.72,y=r.y+r.h*(.33+idx*.09),z=1+Math.min(4,f.level-1)*.13;let shape=f.type==='farm'?`<rect class="farm" x="${x-8*z}" y="${y-6*z}" width="${16*z}" height="${12*z}"/>`:(f.type==='oil_field'?`<circle class="oil" cx="${x}" cy="${y}" r="${7*z}"/>`:`<polygon class="factory" points="${x-8*z},${y+8*z} ${x-8*z},${y-7*z} ${x+8*z},${y-3*z} ${x+8*z},${y+8*z}"/>`);const up=f.upgradeRemaining>0?` ↑${f.upgradeTotal-f.upgradeRemaining}/${f.upgradeTotal}`:'';h+=`<g class="marker">${shape}<text x="${x+11*z}" y="${y+4}">${esc(fn(f.type))} L${f.level}${up}</text></g>`}
- svg.innerHTML=h;svg.querySelectorAll('.region').forEach(el=>el.onclick=()=>setRegion(el.dataset.rid));
- const r=selected();$('mapOverlay').innerHTML=`<h3>${rn(r)} ${r.port?`<span class="tag">${tr('borderPort')}</span>`:''}</h3><div class="small">${tr('population')} ${r.pop.toFixed(0)} · ${tr('road')} ${r.road.toFixed(0)} · ${tr('power')} ${r.power.toFixed(0)} · ${tr('housing')} ${r.housing.toFixed(0)}</div><div class="small">${tr('roadEfficiency')} ×${S.stats.roadEff.toFixed(2)} · ${tr('selected')} ${r.id}</div>`;
+ if(S.showProjects){
+   for(const p of S.projects.filter(p=>p.status==='building')){
+     const r=region(p.regionId),x=r.x+r.w*.18,y=r.y+r.h*.78,done=p.totalYears-p.remaining;
+     h+=`<g class="marker"><rect class="project" x="${x-8}" y="${y-8}" width="16" height="16" rx="3"/><text x="${x+12}" y="${y+4}">${esc(fn(p.type))} ${done}/${p.totalYears}</text></g>`;
+   }
+ }
+ let imageCount=0,activeCount=0;
+ for(const f of S.facilities.filter(f=>f.status==='active')){
+   activeCount++;
+   const r=region(f.regionId),local=S.facilities.filter(x=>x.regionId===r.id&&x.status==='active'),idx=local.indexOf(f),x=r.x+r.w*.72,y=r.y+r.h*(.33+idx*.11),z=1+Math.min(4,f.level-1)*.13;
+   const asset=facilityAssetUrl(f);
+   let shape;
+   if(asset){
+     imageCount++;
+     const iw=(f.type==='farm'?58:68)*z,ih=(f.type==='farm'?42:54)*z;
+     shape=`<image class="facilityImage" data-fid="${attr(f.id)}" href="${attr(asset)}" x="${x-iw/2}" y="${y-ih/2}" width="${iw}" height="${ih}" preserveAspectRatio="xMidYMid meet"/>`;
+   }else{
+     shape=f.type==='farm'?`<rect class="farm" x="${x-8*z}" y="${y-6*z}" width="${16*z}" height="${12*z}"/>`:(f.type==='oil_field'?`<circle class="oil" cx="${x}" cy="${y}" r="${7*z}"/>`:`<polygon class="factory" points="${x-8*z},${y+8*z} ${x-8*z},${y-7*z} ${x+8*z},${y-3*z} ${x+8*z},${y+8*z}"/>`);
+   }
+   const up=f.upgradeRemaining>0?` ↑${f.upgradeTotal-f.upgradeRemaining}/${f.upgradeTotal}`:'';
+   h+=`<g class="marker">${shape}<text x="${x+11*z}" y="${y+4}">${esc(fn(f.type))} L${f.level}${up}</text></g>`;
+ }
+ svg.innerHTML=h;svg.dataset.facilityImages=String(imageCount);svg.dataset.activeFacilities=String(activeCount);
+ svg.querySelectorAll('.region').forEach(el=>el.onclick=()=>setRegion(el.dataset.rid));
+ const r=selected(),mapCount=Object.keys(window.__BE_MAP_IMAGES__||{}).length;
+ $('mapOverlay').innerHTML=`<h3>${rn(r)} ${r.port?`<span class="tag">${tr('borderPort')}</span>`:''}</h3><div class="small">${tr('population')} ${r.pop.toFixed(0)} · ${tr('road')} ${r.road.toFixed(0)} · ${tr('power')} ${r.power.toFixed(0)} · ${tr('housing')} ${r.housing.toFixed(0)}</div><div class="small">${tr('roadEfficiency')} ×${S.stats.roadEff.toFixed(2)} · ${tr('selected')} ${r.id}</div><div class="assetStatus"><span class="${baseUrl?'ok':'bad'}">${S.lang==='zh'?'总地图':'Map'} ${baseUrl?'✓':'×'}${mapCount?` (${mapCount})`:''}</span><span class="${imageCount||!activeCount?'ok':'bad'}">${S.lang==='zh'?'设施图片':'Facility images'} ${imageCount}/${activeCount}</span></div>`;
  $('toggleParcelsBtn').textContent=S.showParcels?tr('parcelsOn'):tr('parcelsOff');$('toggleResourcesBtn').textContent=S.showResources?tr('resOn'):tr('resOff');$('toggleProjectsBtn').textContent=S.showProjects?tr('projOn'):tr('projOff');$('mapLegend').textContent=tr('legend');
 }
 function sectionHead(title,sub=''){return `<div class="rightHead"><h2>${title}</h2>${sub?`<div class="small muted">${sub}</div>`:''}</div>`}
@@ -273,6 +411,11 @@ function runSelfCheck(show=true){
  add('AI uses trade rules',typeof module5ExecuteExport==='function','M6 calls Module 5 export transaction API');
  add('No duplicate trade settlement',S.tradeContracts.every(c=>!(c.status==='delivered'&&!c.settled)),'delivered contracts are settled exactly once');
  add('Oil → road loop',S.motorization.level<2||typeof S.stats.roadEff==='number',`motor L${S.motorization.level}, roadEff=${S.stats.roadEff}`);
+ const mapPack=window.__BE_MAP_IMAGES__||{},mapReady=!!normalizeAsset(mapPack[S.mapKey||'map_01']||mapPack.map_01||mapPack[Object.keys(mapPack)[0]]);
+ add('Existing map asset package',Object.keys(mapPack).length>=1,`maps=${Object.keys(mapPack).length}; source=world-causality-lab-assets-*.js`);
+ add('Full terrain image visible',mapReady&&$('mapBaseImg')&&!$('mapBaseImg').hidden,`map=${S.mapKey||'map_01'}; visible=${!$('mapBaseImg').hidden}`);
+ const resolvable=S.facilities.filter(f=>f.status==='active'&&!!facilityAssetUrl(f)).length,shown=$('worldMap').querySelectorAll('.facilityImage').length;
+ add('Facility image assets visible',shown===resolvable&&shown>0,`resolved=${resolvable}; rendered=${shown}; active=${S.facilities.filter(f=>f.status==='active').length}`);
  add('Parcel visibility',!!$('worldMap').querySelector('.parcel')===S.showParcels,`visible=${$('worldMap').querySelectorAll('.parcel').length}`);
  add('Resource UI visibility',document.querySelector('[data-view="resources"]')!==null,'resource entry exists');
  add('Agriculture UI visibility',document.querySelector('[data-view="agriculture"]')!==null,'agriculture entry exists');
@@ -291,11 +434,11 @@ function renderContext(){let html='';if(S.view==='dashboard')html=renderDashboar
 }
 function render(){document.documentElement.lang=S.lang==='zh'?'zh-CN':'en';document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=tr(el.dataset.i18n));renderTop();renderNav();renderSituation();renderTutorial();renderMap();renderContext()}
 function save(){localStorage.setItem('world-causality-lab-v1-save',JSON.stringify(S));toast(S.lang==='zh'?'已保存到本机浏览器。':'Saved in this browser.')}
-function load(){try{const raw=localStorage.getItem('world-causality-lab-v1-save');if(!raw){toast(S.lang==='zh'?'没有找到存档。':'No save found.');return}S=JSON.parse(raw);render();toast(S.lang==='zh'?'存档已读取。':'Save loaded.')}catch(e){showError(e)}}
+function load(){try{const raw=localStorage.getItem('world-causality-lab-v1-save');if(!raw){toast(S.lang==='zh'?'没有找到存档。':'No save found.');return}S=JSON.parse(raw);if(!S.mapKey)S.mapKey='map_01';__assetIndex=null;render();toast(S.lang==='zh'?'存档已读取。':'Save loaded.')}catch(e){showError(e)}}
 function showError(e){const el=$('errorbar');el.style.display='block';el.textContent='Runtime error: '+(e&&e.message?e.message:String(e));window.__BE_RUNTIME_ERROR__=String(e)}
 window.addEventListener('error',e=>showError(e.error||e.message));window.addEventListener('unhandledrejection',e=>showError(e.reason));
 $('langBtn').onclick=()=>{S.lang=S.lang==='zh'?'en':'zh';render()};$('saveBtn').onclick=save;$('loadBtn').onclick=load;$('advanceBtn').onclick=advanceYear;$('toggleParcelsBtn').onclick=()=>{S.showParcels=!S.showParcels;renderMap();runSelfCheck(false)};$('toggleResourcesBtn').onclick=()=>{S.showResources=!S.showResources;renderMap()};$('toggleProjectsBtn').onclick=()=>{S.showProjects=!S.showProjects;renderMap();runSelfCheck(false)};
-window.WorldLab={getState:()=>deepClone(S),advanceYear,setView,setRegion,startProject,explore,getQuotes,orderImport,runSelfCheck,reset:()=>{S=makeInitialState();render()}};
+window.WorldLab={getState:()=>deepClone(S),advanceYear,setView,setRegion,startProject,explore,getQuotes,orderImport,runSelfCheck,refreshAssets:()=>{__assetIndex=null;buildAssetIndex(true);renderMap();return runSelfCheck(false)},reset:()=>{S=makeInitialState();render()}};
 render();runSelfCheck(false);renderContext();
 })();
 </script>
