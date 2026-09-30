@@ -66,7 +66,7 @@
     return {
       turn: 0,
       facilities: {}, cities: {}, regions: {}, countries: {}, goods: {}, projects: {},
-      bottlenecks: [], debug: { facility: {}, city: {}, government: {}, goods: {} },
+      bottlenecks: [], debug: { facility: {}, city: {}, government: {}, goods: {}, diagnostics: [] },
       module2Signals: { projectProgress: {}, maintenance: {} },
       module4Signals: { countries: {} },
       module5Signals: { tariffAssessments: [], tradeValues: {} },
@@ -84,6 +84,16 @@
   function safeDiv(a, b, fallback) { return b > 0 ? a / b : (fallback == null ? 0 : fallback); }
   function sumValues(obj) { var s = 0; Object.keys(obj || {}).forEach(function(k){ s += num(obj[k]); }); return s; }
   function copy(obj) { return JSON.parse(JSON.stringify(obj)); }
+  function diagnostic(code, detail) {
+    state.debug = state.debug || {};
+    state.debug.diagnostics = Array.isArray(state.debug.diagnostics) ? state.debug.diagnostics : [];
+    detail = detail || {};
+    var entry = Object.assign({ code:code, sourceModule:'economy', turn:state.turn }, copy(detail));
+    var duplicate = state.debug.diagnostics.some(function(x){ return x && x.code===entry.code && x.turn===entry.turn && x.projectId===entry.projectId; });
+    if (!duplicate) state.debug.diagnostics.push(entry);
+    if (typeof console !== 'undefined' && console.warn) console.warn('[BorderEpoch][' + code + ']', detail);
+    return entry;
+  }
   function idOf(x, prefix, i) { return String(x && (x.id || x.key) || (prefix + '_' + i)); }
   function list(x) { return Array.isArray(x) ? x : []; }
   function normalizeOwner(o) {
@@ -508,8 +518,12 @@
     power_plant: { steel: 35, manufactured_goods: 20 },
     powerplant: { steel: 35, manufactured_goods: 20 },
     factory: { steel: 20, manufactured_goods: 14 },
+    basic_factory: { steel: 20, manufactured_goods: 14 },
     steelworks: { steel: 24, manufactured_goods: 16 },
-    default: { steel: 10, manufactured_goods: 8 }
+    mine_development: { steel: 10, manufactured_goods: 8 },
+    facility_upgrade: { steel: 0, manufactured_goods: 0 },
+    connection_upgrade: { steel: 0, manufactured_goods: 0 },
+    resource_exploration: { steel: 0, manufactured_goods: 0 }
   };
 
   function productionPriorityOf(f) {
@@ -567,12 +581,26 @@
     };
   }
 
-  function initialRegionalGoods(idx, previous) {
+  function startingStockpileAmount(idx, gameState, rid, gid) {
+    var all = gameState && gameState.startingStockpiles || {};
+    var byRegion = all[rid] || {};
+    var region = idx.regions[rid] || {};
+    var regionSeed = region.startingStockpiles || region.startingStockpile || {};
+    var raw = byRegion[gid] != null ? byRegion[gid] : regionSeed[gid];
+    if (raw && typeof raw === 'object') raw = raw.stockpile != null ? raw.stockpile : (raw.amount != null ? raw.amount : raw.quantity);
+    return Math.max(0, num(raw, 0));
+  }
+
+  function initialRegionalGoods(idx, previous, gameState) {
     var out = {};
     Object.keys(idx.regions).forEach(function(rid){
       out[rid] = {};
       GOODS.forEach(function(gid){
         var pg = previous && previous.regions && previous.regions[rid] && previous.regions[rid].goods && previous.regions[rid].goods[gid];
+        if (!pg && !previous) {
+          var seeded = startingStockpileAmount(idx, gameState || {}, rid, gid);
+          if (seeded > 0) pg = { stockpile:seeded, price:GOOD_CONFIG[gid].basePrice };
+        }
         out[rid][gid] = createRegionGoodState(gid, pg);
       });
     });
@@ -1441,22 +1469,84 @@
     });
   }
 
-  function projectRegionId(idx, p) {
-    if (p.regionId != null) return String(p.regionId);
-    if (p.cityId != null) return regionIdForCity(idx, String(p.cityId));
+  function connectionById(idx, id) {
+    if (id == null) return null;
+    var key = String(id);
+    return idx.connections.find(function(c){ return c && String(c.id || c.key || '') === key; }) || null;
+  }
+
+  function endpointRegionId(idx, id) {
+    if (id == null) return '';
+    var key = String(id);
+    if (idx.regions[key]) return key;
+    if (idx.cities[key] && idx.cities[key].regionId != null) return String(idx.cities[key].regionId);
     return '';
+  }
+
+  function projectRegionId(idx, p) {
+    var rid = '';
+    if (p.constructionRegionId != null) rid = String(p.constructionRegionId);
+    else if (p.regionId != null) rid = String(p.regionId);
+    else if (p.cityId != null) rid = regionIdForCity(idx, String(p.cityId));
+    if (!rid && p.fromId != null) rid = endpointRegionId(idx, p.fromId);
+    if (!rid && p.targetConnectionId != null) {
+      var conn = connectionById(idx, p.targetConnectionId);
+      if (conn) rid = endpointRegionId(idx, conn.fromId);
+    }
+    if (!rid) diagnostic('PROJECT_REGION_UNRESOLVED', { projectId:idOf(p,'project',0), projectType:p.type || p.projectType || null });
+    return rid;
+  }
+
+  function projectCountryId(idx, p) {
+    var cid = '';
+    if (p.countryId != null) cid = String(p.countryId);
+    else if (p.ownerCountryId != null) cid = String(p.ownerCountryId);
+    else if (p.cityId != null) cid = countryIdForCity(idx, String(p.cityId));
+    else if (p.regionId != null) cid = countryIdForRegion(idx, String(p.regionId));
+    if (!cid && p.fromId != null) {
+      var rid = endpointRegionId(idx, p.fromId);
+      if (rid) cid = countryIdForRegion(idx, rid);
+    }
+    if (!cid) diagnostic('PROJECT_COUNTRY_UNRESOLVED', { projectId:idOf(p,'project',0), projectType:p.type || p.projectType || null });
+    return cid;
+  }
+
+  function projectDurationTurns(p) {
+    var usingLegacy = p.totalTurns == null;
+    var duration = Math.max(1, num(
+      p.totalTurns != null ? p.totalTurns :
+        (p.durationTurns != null ? p.durationTurns : p.duration),
+      1
+    ));
+    if (usingLegacy) diagnostic('PROJECT_DURATION_FALLBACK', { projectId:idOf(p,'project',0), projectType:p.type || p.projectType || null, duration:duration });
+    return duration;
+  }
+
+  function normalizedProjectType(p) {
+    var type = String(p.type || p.projectType || '').toLowerCase();
+    if (type === 'rail') return 'railway';
+    if (type === 'powerplant') return 'power_plant';
+    if (type === 'factory') return 'basic_factory';
+    return type;
   }
 
   function projectMaterialRequirementsPerTurn(p) {
     var explicit = p.materialRequirements || p.materialDemand || p.resourceRequirements || {};
-    var type = String(p.type || p.projectType || 'default').toLowerCase();
-    var defaults = PROJECT_MATERIAL_DEFAULTS[type] || PROJECT_MATERIAL_DEFAULTS.default;
+    var type = normalizedProjectType(p);
+    var defaults = PROJECT_MATERIAL_DEFAULTS[type];
+    var explicitSteel = explicit.steel != null;
+    var explicitManufactured = explicit.manufactured_goods != null || explicit.manufacturedGoods != null;
+    if (!defaults && (!explicitSteel || !explicitManufactured)) {
+      diagnostic('UNKNOWN_PROJECT_MATERIAL_PROFILE', { projectId:idOf(p,'project',0), projectType:type || null });
+      defaults = { steel:0, manufactured_goods:0 };
+    }
+    defaults = defaults || { steel:0, manufactured_goods:0 };
     var total = {
-      steel: explicit.steel != null ? Math.max(0, num(explicit.steel)) : num(defaults.steel, 0),
+      steel: explicitSteel ? Math.max(0, num(explicit.steel)) : num(defaults.steel, 0),
       manufactured_goods: explicit.manufactured_goods != null ? Math.max(0, num(explicit.manufactured_goods)) :
         (explicit.manufacturedGoods != null ? Math.max(0, num(explicit.manufacturedGoods)) : num(defaults.manufactured_goods, 0))
     };
-    var duration = Math.max(1, num(p.durationTurns != null ? p.durationTurns : p.duration, 1));
+    var duration = projectDurationTurns(p);
     return {
       steel: total.steel / duration,
       manufactured_goods: total.manufactured_goods / duration
@@ -1475,7 +1565,7 @@
       if (!state.projects[pid]) {
         state.projects[pid] = {
           projectId: pid, regionId: rid,
-          countryId: p.countryId != null ? String(p.countryId) : countryIdForRegion(idx, rid),
+          countryId: projectCountryId(idx, p),
           materialDemandPerTurn: copy(req), materialUse: {}, materialFulfillmentByGood: {},
           materialFulfillment: 1, recommendedProgressFactor: 1, delayedByMaterials: false
         };
@@ -1556,17 +1646,14 @@
 
   function projectPlannedSpendPerTurn(p) {
     var cost = num(p.totalCost != null ? p.totalCost : p.cost, 0);
-    var duration = Math.max(1, num(p.durationTurns != null ? p.durationTurns : p.duration, 1));
+    var duration = projectDurationTurns(p);
     return Math.max(0, cost / duration);
   }
 
   function projectSpend(idx, countryId) {
     var total = 0;
     idx.projects.forEach(function(p){
-      var projectCountry = p.countryId != null ? String(p.countryId) : '';
-      if (!projectCountry && p.cityId != null) projectCountry = countryIdForCity(idx, String(p.cityId));
-      if (!projectCountry && p.regionId != null) projectCountry = countryIdForRegion(idx, String(p.regionId));
-      if (!projectCountry && Object.keys(idx.countries).length === 1) projectCountry = Object.keys(idx.countries)[0];
+      var projectCountry = projectCountryId(idx, p);
       if (projectCountry !== String(countryId)) return;
       if (p.status === 'cancelled' || p.completed === true || p.status === 'completed') return;
       total += projectPlannedSpendPerTurn(p);
@@ -1630,7 +1717,9 @@
       if (p.status === 'cancelled' || p.completed === true || p.status === 'completed') return;
       var pid = idOf(p, 'project', i);
       var pe = state.projects[pid];
-      if (!pe || String(pe.countryId || '') !== String(countryId)) return;
+      var canonicalCountry = projectCountryId(idx, p);
+      if (!pe || String(canonicalCountry || '') !== String(countryId)) return;
+      pe.countryId = canonicalCountry;
       var material = clamp(num(pe.materialFulfillment, 1), 0, 1);
       pe.financialFulfillment = fundingRatio;
       pe.recommendedProgressFactor = Math.min(material, fundingRatio);
@@ -1644,13 +1733,24 @@
     });
   }
 
+  function financeSeedForCountry(idx, gs, countryId) {
+    var direct = gs.governmentFinance && (gs.governmentFinance[countryId] || (gs.governmentFinance.treasury != null ? gs.governmentFinance : null));
+    var country = idx.countries[countryId] || {};
+    var countryFinance = country.governmentFinance || null;
+    var scenario = gs.startingFinance || (gs.scenario && gs.scenario.startingFinance) || {};
+    var scenarioFinance = scenario[countryId] || (scenario.treasury != null ? scenario : null);
+    var src = direct || countryFinance || scenarioFinance;
+    if (src) return { treasury:num(src.treasury, 30), debt:num(src.debt, 0) };
+    return { treasury:30, debt:0 };
+  }
+
   function calcGovernment(idx, gs, taxPolicy) {
     state.fiscalAudit = {};
     Object.keys(idx.countries).forEach(function(countryId){
       var prev = state.previous && state.previous.countries && state.previous.countries[countryId] && state.previous.countries[countryId].governmentFinance;
-      var cfg = (gs.governmentFinance && (gs.governmentFinance[countryId] || gs.governmentFinance)) || {};
-      var treasury = prev ? num(prev.treasury) : num(cfg.treasury, 30);
-      var debt = prev ? num(prev.debt) : num(cfg.debt, 0);
+      var seedFinance = financeSeedForCountry(idx, gs, countryId);
+      var treasury = prev ? num(prev.treasury) : seedFinance.treasury;
+      var debt = prev ? num(prev.debt) : seedFinance.debt;
       var householdIncome = 0, businessTax = 0, businessProfitTaxBase = 0, resourceRevenue = 0, resourceRoyaltyBase = 0, stateProfit = 0;
       Object.keys(state.cities).forEach(function(cid){
         var c = state.cities[cid];
@@ -1765,6 +1865,57 @@
     state.debug.module5Signals = copy(state.module5Signals);
   }
 
+  function hasSavedEconomy(snapshot) {
+    return !!(snapshot && typeof snapshot === 'object' &&
+      (Object.keys(snapshot.countries || {}).length || Object.keys(snapshot.regions || {}).length));
+  }
+
+  function restoreState(snapshot) {
+    var raw = copy(snapshot || {});
+    var base = freshState();
+    state = Object.assign(base, raw);
+    state.debug = Object.assign({ facility:{}, city:{}, government:{}, goods:{}, diagnostics:[] }, raw.debug || {});
+    state.debug.diagnostics = Array.isArray(state.debug.diagnostics) ? state.debug.diagnostics : [];
+    state.module2Signals = Object.assign({ projectProgress:{}, maintenance:{} }, raw.module2Signals || {});
+    state.module4Signals = Object.assign({ countries:{} }, raw.module4Signals || {});
+    state.module5Signals = Object.assign({ tariffAssessments:[], tradeValues:{} }, raw.module5Signals || {});
+    state.fiscalInputs = Object.assign({ facilitySubsidies:{} }, raw.fiscalInputs || {});
+    state.previous = null;
+    return state;
+  }
+
+  function initializeState(gameState) {
+    gameState = gameState || {};
+    var moduleEconomy = gameState.modules && gameState.modules.economy;
+    var moduleSnapshot = moduleEconomy && moduleEconomy.state ? moduleEconomy.state : moduleEconomy;
+    var saved = hasSavedEconomy(gameState.economy) ? gameState.economy :
+      (hasSavedEconomy(moduleSnapshot) ? moduleSnapshot : null);
+    if (saved) {
+      restoreState(saved);
+    } else {
+      state = freshState();
+      state.turn = num(gameState.turn != null ? gameState.turn : (gameState.time && gameState.time.year), 0);
+      var idx = indexGame(gameState);
+      var regionalGoods = initialRegionalGoods(idx, null, gameState);
+      attachRegionGoods(idx, regionalGoods);
+      state.goods = aggregateNationalGoods(regionalGoods, null);
+      attachCountryGoods(idx, regionalGoods);
+      Object.keys(idx.countries).forEach(function(countryId){
+        var seed = financeSeedForCountry(idx, gameState, countryId);
+        state.countries[countryId] = Object.assign({}, state.countries[countryId] || {}, {
+          countryId:countryId, governmentFinance:{ treasury:seed.treasury, debt:seed.debt }
+        });
+      });
+      buildDebug();
+      state.debug.regionGoods = copy(regionalGoods);
+    }
+    var snapshot = publicState();
+    gameState.economy = copy(snapshot);
+    gameState.modules = gameState.modules || {};
+    gameState.modules.economy = copy(snapshot);
+    return snapshot;
+  }
+
   function update(gameState) {
     gameState = gameState || {};
     var previous = copy(state);
@@ -1779,7 +1930,7 @@
     // Modules 1-2 -> Module 3 physical inputs.
     var power = regionPowerFactors(idx);
     var workers = calcLaborAllocation(idx, cityWorkers(idx));
-    var regionalGoods = initialRegionalGoods(idx, previous.turn ? previous : null);
+    var regionalGoods = initialRegionalGoods(idx, previous.turn ? previous : null, gameState);
     setRegionalFinalDemand(idx, regionalGoods);
 
     // Primary facilities create goods only in their own region.
@@ -1899,7 +2050,9 @@
     DEFAULT_WORKING_CAPITAL_BUFFER: DEFAULT_WORKING_CAPITAL_BUFFER, INVENTORY_SOFT_LIMIT: INVENTORY_SOFT_LIMIT,
     DEFAULT_STORAGE_CAPACITY: copy(DEFAULT_STORAGE_CAPACITY), FREIGHT_COST_PER_100KM: copy(FREIGHT_COST_PER_100KM),
     PROJECT_MATERIAL_DEFAULTS: copy(PROJECT_MATERIAL_DEFAULTS),
-    update: update, reset: reset,
+    update: update, initializeState: initializeState, reset: reset,
+    projectDurationTurns: projectDurationTurns, projectCountryId: projectCountryId, projectRegionId: projectRegionId,
+    projectPlannedSpendPerTurn: projectPlannedSpendPerTurn, projectMaterialRequirementsPerTurn: projectMaterialRequirementsPerTurn,
     getCityEconomy: getCityEconomy, getRegionEconomy: getRegionEconomy,
     getCountryEconomy: getCountryEconomy, getGoodBalance: getGoodBalance,
     getRegionGoodBalance: getRegionGoodBalance, getRegionGoods: getRegionGoods,

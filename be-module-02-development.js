@@ -151,6 +151,73 @@
   function values(x) { return Object.values(x || {}); }
   function nowYear(state) { return Number(state?.time?.year ?? state?.turn ?? 0); }
 
+  function diagnostic(state, code, detail = {}) {
+    state.diagnostics = Array.isArray(state.diagnostics) ? state.diagnostics : [];
+    state.modules = state.modules || {};
+    state.modules.module2 = state.modules.module2 || { version: VERSION, initialized: false };
+    state.modules.module2.diagnostics = Array.isArray(state.modules.module2.diagnostics) ? state.modules.module2.diagnostics : [];
+    const entry = Object.assign({ code, sourceModule:'development', year:nowYear(state) }, deepClone(detail || {}));
+    const same = x => x && x.code===entry.code && x.year===entry.year && x.projectId===entry.projectId;
+    if (!state.modules.module2.diagnostics.some(same)) state.modules.module2.diagnostics.push(entry);
+    if (!state.diagnostics.some(same)) state.diagnostics.push(entry);
+    if (typeof console !== 'undefined' && console.warn) console.warn(`[BorderEpoch][${code}]`, detail || {});
+    return entry;
+  }
+
+  function endpointRegionId(id,state){
+    if(id==null)return null;
+    const key=String(id);
+    if(state.regions?.[key])return key;
+    const city=state.cities?.[key];
+    return city?.regionId!=null?String(city.regionId):null;
+  }
+
+  function constructionRegionId(project,state){
+    if(project.regionId!=null)return String(project.regionId);
+    if(project.constructionRegionId!=null)return String(project.constructionRegionId);
+    if(project.cityId!=null&&state.cities?.[project.cityId]?.regionId!=null)return String(state.cities[project.cityId].regionId);
+    const from=endpointRegionId(project.fromId,state);if(from)return from;
+    const conn=project.targetConnectionId!=null?state.connections?.[project.targetConnectionId]:null;
+    if(conn){const start=endpointRegionId(conn.fromId,state);if(start)return start;}
+    return null;
+  }
+
+  function projectCountryId(project,state){
+    if(project.countryId!=null)return String(project.countryId);
+    if(project.ownerCountryId!=null)return String(project.ownerCountryId);
+    const conn=project.targetConnectionId!=null?state.connections?.[project.targetConnectionId]:null;
+    if(conn){
+      if(conn.countryId!=null)return String(conn.countryId);
+      if(conn.ownerCountryId!=null)return String(conn.ownerCountryId);
+      const a=endpointRegionId(conn.fromId,state),b=endpointRegionId(conn.toId,state);
+      if(a&&state.regions?.[a]?.countryId!=null)return String(state.regions[a].countryId);
+      if(b&&state.regions?.[b]?.countryId!=null)return String(state.regions[b].countryId);
+    }
+    if(project.cityId!=null&&state.cities?.[project.cityId]?.countryId!=null)return String(state.cities[project.cityId].countryId);
+    const rid=constructionRegionId(project,state);
+    if(rid&&state.regions?.[rid]?.countryId!=null)return String(state.regions[rid].countryId);
+    const from=endpointRegionId(project.fromId,state);
+    if(from&&state.regions?.[from]?.countryId!=null)return String(state.regions[from].countryId);
+    return state.playerCountryId!=null?String(state.playerCountryId):null;
+  }
+
+  function normalizeProjectContract(project,state){
+    if(!project||typeof project!=='object')return project;
+    const rid=constructionRegionId(project,state);
+    if(project.constructionRegionId==null&&rid!=null)project.constructionRegionId=rid;
+    if(project.regionId==null&&rid!=null)project.regionId=rid;
+    const cid=projectCountryId(project,state);
+    if(project.countryId==null&&cid!=null)project.countryId=cid;
+    if(project.type==='railway'&&project.ownerCountryId==null&&cid!=null)project.ownerCountryId=cid;
+    const duration=Number(project.totalTurns ?? project.durationTurns ?? project.duration ?? project.turnsRemaining ?? 1);
+    project.totalTurns=Math.max(1,Number.isFinite(duration)?duration:1);
+    if(project.turnsRemaining==null)project.turnsRemaining=project.totalTurns;
+    project.turnsRemaining=Math.max(0,Number(project.turnsRemaining)||0);
+    if(project.materialRequirements==null)project.materialRequirements=project.type==='resource_exploration'?{steel:0,manufactured_goods:0}:{};
+    if(project.startedYear==null)project.startedYear=nowYear(state);
+    return project;
+  }
+
   function hashString(input) {
     let h = 2166136261 >>> 0;
     const s = String(input);
@@ -193,6 +260,7 @@
     values(state.connections).forEach(c => {
       if (CONNECTION_LEVELS[c.type]) applyConnectionLevel(c, c.level || 1, state, false);
     });
+    values(state.projects).forEach(p => normalizeProjectContract(p,state));
     recalculatePower(state);
     state.modules.module2.initialized = true;
     return state;
@@ -380,8 +448,8 @@
 
   function startExploration(regionId,resourceType,methodOrAlias,state,options={}){
     const check=canStartExploration(regionId,resourceType,methodOrAlias,state,options);if(!check.ok)return check;
-    const p={id:nextId('project_exploration'),type:'resource_exploration',explorationMethod:check.method,explorationStage:methodOrAlias,resourceType,regionId,parcelId:check.parcelId,countryId:state.regions?.[regionId]?.countryId||null,name:`${resolveMethod(methodOrAlias).label} — ${resourceType}`,cost:check.cost,totalTurns:check.years,turnsRemaining:check.years,status:'under_construction',startedYear:nowYear(state),basisGeologyRevision:check.geologyRevision,causalActionRef:options.causalActionRef||null};
-    state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,regionId,parcelId:p.parcelId,resourceType,explorationMethod:p.explorationMethod,causalActionRef:p.causalActionRef});return{ok:true,project:p};
+    const p={id:nextId('project_exploration'),type:'resource_exploration',explorationMethod:check.method,explorationStage:methodOrAlias,resourceType,regionId,parcelId:check.parcelId,countryId:state.regions?.[regionId]?.countryId||state.playerCountryId||null,name:`${resolveMethod(methodOrAlias).label} — ${resourceType}`,cost:check.cost,totalTurns:check.years,turnsRemaining:check.years,status:'under_construction',materialRequirements:{steel:0,manufactured_goods:0},startedYear:nowYear(state),basisGeologyRevision:check.geologyRevision,causalActionRef:options.causalActionRef||null};
+    normalizeProjectContract(p,state);state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,regionId,parcelId:p.parcelId,resourceType,explorationMethod:p.explorationMethod,causalActionRef:p.causalActionRef});return{ok:true,project:p};
   }
 
   function completeExplorationProject(p,state){
@@ -506,7 +574,7 @@
       ownership:method==='foreign_funded'?{type:'foreign',foreignCountryId:options.foreignCountryId||'foreign_partner',foreignShare:.65,domesticShare:.35}:{type:'domestic',domesticShare:1},
       causalActionRef:options.causalActionRef||null
     };
-    state.projects[p.id]=p;
+    normalizeProjectContract(p,state);state.projects[p.id]=p;
     emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,depositId,regionId:p.regionId,resourceType:p.resourceType,developmentMethod:method,causalActionRef:p.causalActionRef});
     return{ok:true,project:p,estimate:e};
   }
@@ -602,14 +670,15 @@
     const c=canUpgradeFacility(facilityId,state);if(!c.ok)return c;
     const f=state.facilities[facilityId],s=c.nextSpec;
     const p={id:nextId('project_upgrade'),type:'facility_upgrade',targetFacilityId:facilityId,regionId:f.regionId,name:`Upgrade ${f.name}`,fromLevel:f.level,toLevel:c.nextLevel,cost:s.upgradeCost,totalTurns:s.upgradeTurns,turnsRemaining:s.upgradeTurns,status:'under_construction',startedYear:nowYear(state),causalActionRef:options.causalActionRef||null};
-    state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,targetFacilityId:facilityId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
+    normalizeProjectContract(p,state);state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,targetFacilityId:facilityId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
   }
 
   function createRailConnection(fromId,toId,options={},state){
     ensureState(state);
     const existing=values(state.connections).find(c=>c.type==='railway'&&((c.fromId===fromId&&c.toId===toId)||(c.fromId===toId&&c.toId===fromId))&&c.active!==false);
     if(existing)return existing;
-    const c={id:options.id||nextId('railway'),type:'railway',fromId,toId,ownerCountryId:options.ownerCountryId||state.playerCountryId||null,level:1,maxLevel:5,capacity:15,active:true};
+    const countryId=options.countryId||options.ownerCountryId||state.playerCountryId||null;
+    const c={id:options.id||nextId('railway'),type:'railway',fromId,toId,countryId,ownerCountryId:options.ownerCountryId||options.countryId||state.playerCountryId||null,level:1,maxLevel:5,capacity:15,active:true};
     applyConnectionLevel(c,1,state,false);state.connections[c.id]=c;emit(state,'CONNECTION_COMPLETED',{connectionId:c.id,connectionType:'railway',fromId,toId});return c;
   }
 
@@ -625,7 +694,7 @@
     const c=state.connections?.[connectionId];if(!c)return{ok:false,error:'Unknown connection.'};const max=CONNECTION_LEVELS[c.type]?.maxLevel||1;if((c.level||1)>=max)return{ok:false,error:'Maximum level reached.'};const nextLevel=(c.level||1)+1;return{ok:true,nextLevel,nextSpec:getConnectionSpec(c.type,nextLevel)};
   }
   function startConnectionUpgrade(connectionId,state,options={}){
-    const c=canUpgradeConnection(connectionId,state);if(!c.ok)return c;const conn=state.connections[connectionId],s=c.nextSpec;const p={id:nextId('project_connection_upgrade'),type:'connection_upgrade',targetConnectionId:connectionId,regionId:null,name:`Upgrade ${conn.type}`,fromLevel:conn.level,toLevel:c.nextLevel,cost:s.upgradeCost,totalTurns:s.upgradeTurns,turnsRemaining:s.upgradeTurns,status:'under_construction',startedYear:nowYear(state),causalActionRef:options.causalActionRef||null};state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,targetConnectionId:connectionId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
+    const c=canUpgradeConnection(connectionId,state);if(!c.ok)return c;const conn=state.connections[connectionId],s=c.nextSpec;const p={id:nextId('project_connection_upgrade'),type:'connection_upgrade',targetConnectionId:connectionId,regionId:null,name:`Upgrade ${conn.type}`,fromLevel:conn.level,toLevel:c.nextLevel,cost:s.upgradeCost,totalTurns:s.upgradeTurns,turnsRemaining:s.upgradeTurns,status:'under_construction',startedYear:nowYear(state),causalActionRef:options.causalActionRef||null};normalizeProjectContract(p,state);state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,targetConnectionId:connectionId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
   }
 
   function startProject(def,state){
@@ -634,10 +703,11 @@
     if(def.type==='mine_development')return startMineDevelopment(def.depositId,def,state);
     if(def.type==='railway'){
       if(hasRailConnection(def.fromId,def.toId,state))return{ok:false,error:'Railway already exists.'};
-      const p={id:nextId('project_railway'),type:'railway',name:def.name||'Railway',fromId:def.fromId,toId:def.toId,ownerCountryId:def.ownerCountryId||state.playerCountryId||null,regionId:def.regionId||null,cost:Number(def.cost||18),totalTurns:Number(def.totalTurns||2),turnsRemaining:Number(def.totalTurns||2),status:'under_construction',startedYear:nowYear(state),causalActionRef:def.causalActionRef||null};state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:'railway',fromId:p.fromId,toId:p.toId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
+      const countryId=def.countryId||def.ownerCountryId||state.playerCountryId||null;
+      const p={id:nextId('project_railway'),type:'railway',name:def.name||'Railway',fromId:def.fromId,toId:def.toId,countryId,ownerCountryId:def.ownerCountryId||def.countryId||state.playerCountryId||null,regionId:def.regionId||null,constructionRegionId:def.constructionRegionId||null,materialRequirements:deepClone(def.materialRequirements||{}),cost:Number(def.cost||18),totalTurns:Number(def.totalTurns||2),turnsRemaining:Number(def.totalTurns||2),status:'under_construction',startedYear:nowYear(state),causalActionRef:def.causalActionRef||null};normalizeProjectContract(p,state);state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:'railway',fromId:p.fromId,toId:p.toId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
     }
     if(FACILITY_LEVELS[def.type] && !['coal_mine','iron_mine'].includes(def.type)){
-      const p={id:nextId('project_facility'),type:def.type,name:def.name||def.type,regionId:def.regionId,cityId:def.cityId||null,countryId:def.countryId||state.playerCountryId||null,cost:Number(def.cost||10),totalTurns:Number(def.totalTurns||2),turnsRemaining:Number(def.totalTurns||2),status:'under_construction',startedYear:nowYear(state),ownership:deepClone(def.ownership||{type:'domestic',domesticShare:1}),causalActionRef:def.causalActionRef||null};state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,regionId:p.regionId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
+      const p={id:nextId('project_facility'),type:def.type,name:def.name||def.type,regionId:def.regionId,cityId:def.cityId||null,countryId:def.countryId||state.playerCountryId||null,cost:Number(def.cost||10),totalTurns:Number(def.totalTurns||2),turnsRemaining:Number(def.totalTurns||2),status:'under_construction',startedYear:nowYear(state),ownership:deepClone(def.ownership||{type:'domestic',domesticShare:1}),causalActionRef:def.causalActionRef||null};normalizeProjectContract(p,state);state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,regionId:p.regionId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
     }
     return{ok:false,error:`Unsupported project type: ${def.type}`};
   }
@@ -650,7 +720,7 @@
     else if(p.type==='mine_development')created=completeMineDevelopment(p,state);
     else if(p.type==='facility_upgrade'){const f=state.facilities[p.targetFacilityId];if(!f)return{ok:false,error:'Upgrade target missing.'};applyFacilityLevel(f,p.toLevel,state,true);created=f;}
     else if(p.type==='connection_upgrade'){const c=state.connections[p.targetConnectionId];if(!c)return{ok:false,error:'Connection target missing.'};applyConnectionLevel(c,p.toLevel,state,true);created=c;}
-    else if(p.type==='railway'){created=createRailConnection(p.fromId,p.toId,{ownerCountryId:p.ownerCountryId},state);}
+    else if(p.type==='railway'){created=createRailConnection(p.fromId,p.toId,{countryId:p.countryId,ownerCountryId:p.ownerCountryId||p.countryId},state);}
     else if(FACILITY_LEVELS[p.type]){created=createFacility({type:p.type,name:p.name,regionId:p.regionId,cityId:p.cityId,countryId:p.countryId,ownership:p.ownership},state);}
     p.status='completed';p.turnsRemaining=0;p.completedYear=nowYear(state);emit(state,'PROJECT_COMPLETED',{projectId:p.id,projectType:p.type,regionId:p.regionId||null,causalActionRef:p.causalActionRef||null});recalculatePower(state);return{ok:true,project:p,created,result};
   }
@@ -659,14 +729,18 @@
 
   function updateProjects(state,years=1){
     ensureState(state);const completed=[];
-    // Module 8 integration: Module 3 owns material/finance feasibility and emits
-    // recommendedProgressFactor. Module 2 remains the only owner of physical
-    // project progress/completion, but consumes that signal on the following year.
-    const progressSignals=state.modules?.economy?.module2Signals?.projectProgress||state.economy?.module2Signals?.projectProgress||{};
+    // Module 3 owns finance/material feasibility. In the integrated game a missing
+    // signal is a hard stop; only a true Module 2 standalone run defaults to 100%.
+    const economyModule=state.modules?.economy||null;
+    const progressSignals=economyModule?.module2Signals?.projectProgress||state.economy?.module2Signals?.projectProgress||{};
+    const economyIntegrated=!!(economyModule||state.economy?.module2Signals);
     for(let y=0;y<years;y++){
       values(state.projects).filter(p=>p.status==='under_construction').forEach(p=>{
         const sig=progressSignals[p.id];
-        const factor=Math.max(0,Math.min(1,Number(sig?.recommendedProgressFactor??1)));
+        let factor;
+        if(sig&&Number.isFinite(Number(sig.recommendedProgressFactor))) factor=Math.max(0,Math.min(1,Number(sig.recommendedProgressFactor)));
+        else if(economyIntegrated){factor=0;diagnostic(state,'PROJECT_PROGRESS_SIGNAL_MISSING',{projectId:p.id,projectType:p.type});}
+        else factor=1;
         p.progressCredit=Number(p.progressCredit||0)+factor;
         const whole=Math.min(Number(p.turnsRemaining||0),Math.floor(p.progressCredit+1e-9));
         if(whole>0){p.turnsRemaining=Math.max(0,Number(p.turnsRemaining||0)-whole);p.progressCredit-=whole;}
@@ -750,7 +824,7 @@
     getFacilityLevelInfo,
     getConnectionLevelInfo,
     getDebugSnapshot,
-    _internals:{deriveSubsurface,engineeringAssessment,knowledgeFor,reserveEstimate,methodInformationGain,qualityClass,depthClass,stabilityClass,riskClass,accessClass,resolveParcelId}
+    _internals:{deriveSubsurface,engineeringAssessment,knowledgeFor,reserveEstimate,methodInformationGain,qualityClass,depthClass,stabilityClass,riskClass,accessClass,resolveParcelId,constructionRegionId,projectCountryId,normalizeProjectContract}
   };
   return api;
 });
