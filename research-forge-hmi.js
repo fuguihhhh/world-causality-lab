@@ -4,7 +4,7 @@ const Bridge=global.BorderEpochResearchForgeBridge;
 const fmt=v=>Number.isFinite(+v)?Math.round(+v*100)+'%':'—';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 class ResearchForgeElement extends HTMLElement{
- constructor(){super();this.attachShadow({mode:'open'});this.bridge=null;this.lang='zh';this.tab='capabilities';this.domain='materials';this.cluster=null;this.problem=null;this.renderShell();}
+ constructor(){super();this.attachShadow({mode:'open'});this.bridge=null;this.tab='capabilities';this.domain='materials';this.cluster=null;this.problem=null;this.renderShell();}
  connect(options={}){this.bridge=new Bridge(options);this.lang=(this.bridge.languageProvider?.()||'zh').startsWith('en')?'en':'zh';this.render();return this;}
  t(z,e){return this.lang==='zh'?z:e}
  renderShell(){this.shadowRoot.innerHTML=`<style>${this.css()}</style><div id="app"></div>`;}
