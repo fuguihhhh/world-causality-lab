@@ -1,0 +1,22 @@
+{
+  "source_file": "world-causality-lab-v1(20260930-045547).html",
+  "main_html": "world-causality-lab-v1.html",
+  "modules": [
+    "be-module-01-world.js",
+    "be-module-02-development.js",
+    "be-module-03-economy.js",
+    "be-module-04-population.js",
+    "be-module-05-trade-diplomacy.js",
+    "be-module-06-ai-countries.js",
+    "be-module-07-events.js",
+    "be-module-08-integration.js",
+    "be-module-09-agriculture.js",
+    "be-module-10-research.js"
+  ],
+  "interface": "world-causality-lab-interface.js",
+  "unchanged_external_dependencies": [
+    "world-causality-lab-assets-1.js",
+    "world-causality-lab-assets-2.js"
+  ],
+  "note": "Module 10 is intentionally inert because this uploaded baseline does not yet contain research code."
+}
