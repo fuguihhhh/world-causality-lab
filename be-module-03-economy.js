@@ -60,6 +60,13 @@
     high:   { household: 0.22, business: 0.28, disposableIncomeFactor: 0.92 }
   };
 
+  /* Opening baseline economy.
+     Cities and population imply ordinary household work and small private activity even
+     before the player constructs large modeled facilities. These values are deliberately
+     modest so they prevent a zero tax base without turning the opening treasury into a windfall. */
+  var BASELINE_HOUSEHOLD_INCOME_PER_100K = 16;
+  var BASELINE_PRIVATE_PROFIT_PER_100K = 3;
+
   var state = freshState();
 
   function freshState() {
@@ -509,6 +516,10 @@
     powerplant: { steel: 35, manufactured_goods: 20 },
     factory: { steel: 20, manufactured_goods: 14 },
     steelworks: { steel: 24, manufactured_goods: 16 },
+    resource_exploration: { steel: 0, manufactured_goods: 0 },
+    mine_development: { steel: 10, manufactured_goods: 8 },
+    facility_upgrade: { steel: 10, manufactured_goods: 8 },
+    connection_upgrade: { steel: 10, manufactured_goods: 8 },
     default: { steel: 10, manufactured_goods: 8 }
   };
 
@@ -1400,10 +1411,6 @@
         industrialOutput += sumValues(f.output);
       });
       var avgIncomeGross = filled > 0 ? wages * 10000 / filled : num(c.baseIncome, 28);
-      var population = Math.max(0, num(c.population, 0));
-      var baselineIncomePerCapita = Math.max(0, num(c.baseIncome, 28));
-      var baselineHouseholdIncome = population > 0 ? baselineIncomePerCapita * population / 10000 : 0;
-      var grossHouseholdIncome = Math.max(wages, baselineHouseholdIncome);
       var avgIncome = avgIncomeGross * (1 - taxPolicy.household) * taxPolicy.disposableIncomeFactor;
       var regionId = regionIdForCity(idx, cid);
       var regionFood = state.regions[regionId] && state.regions[regionId].goods ? state.regions[regionId].goods.food : null;
@@ -1418,7 +1425,7 @@
         availableWorkers: pool.total, unemployedWorkers: Math.max(0, pool.total - filled),
         employmentRate: pool.total > 0 ? clamp(filled / pool.total, 0, 1) : 0,
         averageIncome: avgIncome, averageGrossIncome: avgIncomeGross,
-        totalHouseholdIncome: grossHouseholdIncome, grossHouseholdIncome: grossHouseholdIncome, industrialOutput: industrialOutput,
+        totalHouseholdIncome: wages, grossHouseholdIncome: wages, industrialOutput: industrialOutput,
         foodAvailability: regionFood && regionFood.finalDemand > 0 ? clamp(regionFood.finalUse / regionFood.finalDemand, 0, 1.5) : 1,
         foodPrice: foodPrice, economicGrowth: growth, growthRate: growth,
         taxBurden: taxPolicy.household,
@@ -1451,6 +1458,10 @@
     return '';
   }
 
+  function projectDurationTurns(p) {
+    return Math.max(1, num(p.totalTurns != null ? p.totalTurns : (p.durationTurns != null ? p.durationTurns : p.duration), 1));
+  }
+
   function projectMaterialRequirementsPerTurn(p) {
     var explicit = p.materialRequirements || p.materialDemand || p.resourceRequirements || {};
     var type = String(p.type || p.projectType || 'default').toLowerCase();
@@ -1460,7 +1471,7 @@
       manufactured_goods: explicit.manufactured_goods != null ? Math.max(0, num(explicit.manufactured_goods)) :
         (explicit.manufacturedGoods != null ? Math.max(0, num(explicit.manufacturedGoods)) : num(defaults.manufactured_goods, 0))
     };
-    var duration = Math.max(1, num(p.totalTurns != null ? p.totalTurns : (p.durationTurns != null ? p.durationTurns : p.duration), 1));
+    var duration = projectDurationTurns(p);
     return {
       steel: total.steel / duration,
       manufactured_goods: total.manufactured_goods / duration
@@ -1559,20 +1570,28 @@
   }
 
   function projectPlannedSpendPerTurn(p) {
-    var cost = p.governmentCost != null ? num(p.governmentCost, 0) : num(p.totalCost != null ? p.totalCost : p.cost, 0);
-    var duration = Math.max(1, num(p.totalTurns != null ? p.totalTurns : (p.durationTurns != null ? p.durationTurns : p.duration), 1));
+    var cost = num(p.totalCost != null ? p.totalCost : p.cost, 0);
+    var duration = projectDurationTurns(p);
     return Math.max(0, cost / duration);
   }
 
-  function projectSpend(idx, countryId) {
+  function projectSpend(idx, countryId, gs) {
     var total = 0;
+    var currentYear = num(gs && gs.time && gs.time.year, num(gs && gs.year, NaN));
     idx.projects.forEach(function(p){
       var projectCountry = p.countryId != null ? String(p.countryId) : '';
       if (!projectCountry && p.cityId != null) projectCountry = countryIdForCity(idx, String(p.cityId));
       if (!projectCountry && p.regionId != null) projectCountry = countryIdForRegion(idx, String(p.regionId));
       if (!projectCountry && Object.keys(idx.countries).length === 1) projectCountry = Object.keys(idx.countries)[0];
       if (projectCountry !== String(countryId)) return;
-      if (p.status === 'cancelled' || p.completed === true || p.status === 'completed') return;
+      if (p.status === 'cancelled') return;
+      // M8 advances physical projects before Economy settles the same year. A project
+      // completed during this year's M2 step still owes its final annual installment;
+      // projects completed in earlier years must never be charged again.
+      if (p.completed === true || p.status === 'completed') {
+        var completedYear = num(p.completedYear, NaN);
+        if (!Number.isFinite(currentYear) || !Number.isFinite(completedYear) || completedYear !== currentYear) return;
+      }
       total += projectPlannedSpendPerTurn(p);
     });
     return total;
@@ -1670,6 +1689,16 @@
         resourceRoyaltyBase += Math.max(0, num(fe.resourceRoyaltyBase));
         stateProfit += Math.max(0, num(fe.stateEnterpriseProfit));
       });
+      // Ordinary households and small private businesses exist outside the explicitly modeled
+      // large-facility layer. They contribute a modest baseline tax base instead of zero.
+      var baselinePopulation = countryPopulation(idx, countryId);
+      var populationUnits = Math.max(0, baselinePopulation / 100000);
+      var baselineHouseholdIncome = populationUnits * BASELINE_HOUSEHOLD_INCOME_PER_100K;
+      var baselinePrivateProfit = populationUnits * BASELINE_PRIVATE_PROFIT_PER_100K;
+      householdIncome += baselineHouseholdIncome;
+      businessProfitTaxBase += baselinePrivateProfit;
+      businessTax += baselinePrivateProfit * taxPolicy.business;
+
       var tariffInfo = countryTariffRevenue(idx, countryId);
       var spendingCfg = (gs.governmentSpending && (gs.governmentSpending[countryId] || gs.governmentSpending)) || {};
       var taxCfg = (gs.taxRates && (gs.taxRates[countryId] || gs.taxRates)) || {};
@@ -1687,7 +1716,7 @@
 
       var interestRate = clamp(0.025 + (debt > 50 ? (debt - 50) * 0.0007 : 0), 0.025, 0.14);
       var debtInterest = debt * interestRate;
-      var plannedProjectSpending = projectSpend(idx, countryId);
+      var plannedProjectSpending = projectSpend(idx, countryId, gs);
       var projectBudget = spendingCfg.projectSpendingBudget != null ? Math.max(0, num(spendingCfg.projectSpendingBudget)) :
         (spendingCfg.projectsBudget != null ? Math.max(0, num(spendingCfg.projectsBudget)) : plannedProjectSpending);
       var actualProjectSpending = Math.min(plannedProjectSpending, projectBudget);
@@ -1741,6 +1770,7 @@
         householdTaxRate:taxPolicy.household
       };
       state.fiscalAudit[countryId] = { taxBases:copy(taxBases), revenue:copy(revenue), expenditure:copy(spending),
+        baselineEconomy:{population:baselinePopulation,householdIncome:baselineHouseholdIncome,privateProfit:baselinePrivateProfit},
         projectFundingRatio:projectFundingRatio, maintenanceFundingRatio:maintenanceFundingRatio };
     });
   }
@@ -1903,6 +1933,7 @@
     DEFAULT_WORKING_CAPITAL_BUFFER: DEFAULT_WORKING_CAPITAL_BUFFER, INVENTORY_SOFT_LIMIT: INVENTORY_SOFT_LIMIT,
     DEFAULT_STORAGE_CAPACITY: copy(DEFAULT_STORAGE_CAPACITY), FREIGHT_COST_PER_100KM: copy(FREIGHT_COST_PER_100KM),
     PROJECT_MATERIAL_DEFAULTS: copy(PROJECT_MATERIAL_DEFAULTS),
+    BASELINE_ECONOMY: { householdIncomePer100k:BASELINE_HOUSEHOLD_INCOME_PER_100K, privateProfitPer100k:BASELINE_PRIVATE_PROFIT_PER_100K },
     update: update, reset: reset,
     getCityEconomy: getCityEconomy, getRegionEconomy: getRegionEconomy,
     getCountryEconomy: getCountryEconomy, getGoodBalance: getGoodBalance,
