@@ -380,7 +380,7 @@
 
   function startExploration(regionId,resourceType,methodOrAlias,state,options={}){
     const check=canStartExploration(regionId,resourceType,methodOrAlias,state,options);if(!check.ok)return check;
-    const p={id:nextId('project_exploration'),type:'resource_exploration',explorationMethod:check.method,explorationStage:methodOrAlias,resourceType,regionId,parcelId:check.parcelId,countryId:state.regions?.[regionId]?.countryId||null,name:`${resolveMethod(methodOrAlias).label} — ${resourceType}`,cost:check.cost,governmentCost:check.cost,totalTurns:check.years,turnsRemaining:check.years,status:'under_construction',startedYear:nowYear(state),basisGeologyRevision:check.geologyRevision,causalActionRef:options.causalActionRef||null};
+    const p={id:nextId('project_exploration'),type:'resource_exploration',explorationMethod:check.method,explorationStage:methodOrAlias,resourceType,regionId,parcelId:check.parcelId,countryId:state.regions?.[regionId]?.countryId||null,name:`${resolveMethod(methodOrAlias).label} — ${resourceType}`,cost:check.cost,totalTurns:check.years,turnsRemaining:check.years,status:'under_construction',startedYear:nowYear(state),basisGeologyRevision:check.geologyRevision,causalActionRef:options.causalActionRef||null};
     state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,regionId,parcelId:p.parcelId,resourceType,explorationMethod:p.explorationMethod,causalActionRef:p.causalActionRef});return{ok:true,project:p};
   }
 
@@ -601,7 +601,7 @@
   function startFacilityUpgrade(facilityId,state,options={}){
     const c=canUpgradeFacility(facilityId,state);if(!c.ok)return c;
     const f=state.facilities[facilityId],s=c.nextSpec;
-    const p={id:nextId('project_upgrade'),type:'facility_upgrade',targetFacilityId:facilityId,regionId:f.regionId,countryId:f.countryId||state.regions?.[f.regionId]?.countryId||state.playerCountryId||null,name:`Upgrade ${f.name}`,fromLevel:f.level,toLevel:c.nextLevel,cost:s.upgradeCost,governmentCost:s.upgradeCost,totalTurns:s.upgradeTurns,turnsRemaining:s.upgradeTurns,status:'under_construction',startedYear:nowYear(state),causalActionRef:options.causalActionRef||null};
+    const p={id:nextId('project_upgrade'),type:'facility_upgrade',targetFacilityId:facilityId,regionId:f.regionId,name:`Upgrade ${f.name}`,fromLevel:f.level,toLevel:c.nextLevel,cost:s.upgradeCost,totalTurns:s.upgradeTurns,turnsRemaining:s.upgradeTurns,status:'under_construction',startedYear:nowYear(state),causalActionRef:options.causalActionRef||null};
     state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,targetFacilityId:facilityId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
   }
 
@@ -625,7 +625,7 @@
     const c=state.connections?.[connectionId];if(!c)return{ok:false,error:'Unknown connection.'};const max=CONNECTION_LEVELS[c.type]?.maxLevel||1;if((c.level||1)>=max)return{ok:false,error:'Maximum level reached.'};const nextLevel=(c.level||1)+1;return{ok:true,nextLevel,nextSpec:getConnectionSpec(c.type,nextLevel)};
   }
   function startConnectionUpgrade(connectionId,state,options={}){
-    const c=canUpgradeConnection(connectionId,state);if(!c.ok)return c;const conn=state.connections[connectionId],s=c.nextSpec;const p={id:nextId('project_connection_upgrade'),type:'connection_upgrade',targetConnectionId:connectionId,regionId:null,countryId:conn.ownerCountryId||state.playerCountryId||null,name:`Upgrade ${conn.type}`,fromLevel:conn.level,toLevel:c.nextLevel,cost:s.upgradeCost,governmentCost:s.upgradeCost,totalTurns:s.upgradeTurns,turnsRemaining:s.upgradeTurns,status:'under_construction',startedYear:nowYear(state),causalActionRef:options.causalActionRef||null};state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,targetConnectionId:connectionId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
+    const c=canUpgradeConnection(connectionId,state);if(!c.ok)return c;const conn=state.connections[connectionId],s=c.nextSpec;const p={id:nextId('project_connection_upgrade'),type:'connection_upgrade',targetConnectionId:connectionId,regionId:null,name:`Upgrade ${conn.type}`,fromLevel:conn.level,toLevel:c.nextLevel,cost:s.upgradeCost,totalTurns:s.upgradeTurns,turnsRemaining:s.upgradeTurns,status:'under_construction',startedYear:nowYear(state),causalActionRef:options.causalActionRef||null};state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,targetConnectionId:connectionId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
   }
 
   function startProject(def,state){
@@ -634,10 +634,12 @@
     if(def.type==='mine_development')return startMineDevelopment(def.depositId,def,state);
     if(def.type==='railway'){
       if(hasRailConnection(def.fromId,def.toId,state))return{ok:false,error:'Railway already exists.'};
-      const p={id:nextId('project_railway'),type:'railway',name:def.name||'Railway',fromId:def.fromId,toId:def.toId,ownerCountryId:def.ownerCountryId||state.playerCountryId||null,countryId:def.countryId||def.ownerCountryId||state.playerCountryId||null,regionId:def.regionId||null,cost:Number(def.cost||18),governmentCost:Number(def.governmentCost!=null?def.governmentCost:(def.cost||18)),totalTurns:Number(def.totalTurns||2),turnsRemaining:Number(def.totalTurns||2),status:'under_construction',startedYear:nowYear(state),causalActionRef:def.causalActionRef||null};state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:'railway',fromId:p.fromId,toId:p.toId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
+      const activeRailProject=values(state.projects).find(p=>p.type==='railway'&&p.status==='under_construction'&&((p.fromId===def.fromId&&p.toId===def.toId)||(p.fromId===def.toId&&p.toId===def.fromId)));
+      if(activeRailProject)return{ok:false,error:'Railway project already under construction.'};
+      const p={id:nextId('project_railway'),type:'railway',name:def.name||'Railway',fromId:def.fromId,toId:def.toId,ownerCountryId:def.ownerCountryId||state.playerCountryId||null,regionId:def.regionId||null,cost:Number(def.cost||18),totalTurns:Number(def.totalTurns||2),turnsRemaining:Number(def.totalTurns||2),status:'under_construction',startedYear:nowYear(state),causalActionRef:def.causalActionRef||null};state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:'railway',fromId:p.fromId,toId:p.toId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
     }
     if(FACILITY_LEVELS[def.type] && !['coal_mine','iron_mine'].includes(def.type)){
-      const p={id:nextId('project_facility'),type:def.type,name:def.name||def.type,regionId:def.regionId,cityId:def.cityId||null,countryId:def.countryId||state.playerCountryId||null,cost:Number(def.cost||10),governmentCost:Number(def.governmentCost!=null?def.governmentCost:(def.cost||10)),totalTurns:Number(def.totalTurns||2),turnsRemaining:Number(def.totalTurns||2),status:'under_construction',startedYear:nowYear(state),ownership:deepClone(def.ownership||{type:'domestic',domesticShare:1}),causalActionRef:def.causalActionRef||null};state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,regionId:p.regionId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
+      const p={id:nextId('project_facility'),type:def.type,name:def.name||def.type,regionId:def.regionId,cityId:def.cityId||null,countryId:def.countryId||state.playerCountryId||null,cost:Number(def.cost||10),totalTurns:Number(def.totalTurns||2),turnsRemaining:Number(def.totalTurns||2),status:'under_construction',startedYear:nowYear(state),ownership:deepClone(def.ownership||{type:'domestic',domesticShare:1}),causalActionRef:def.causalActionRef||null};state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,regionId:p.regionId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
     }
     return{ok:false,error:`Unsupported project type: ${def.type}`};
   }
