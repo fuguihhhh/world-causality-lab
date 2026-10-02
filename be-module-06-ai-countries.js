@@ -66,6 +66,32 @@ const CountryAI = (() => {
     }
   };
 
+  // Compact macro-industry baselines for AI countries that do not yet have
+  // a full Module 3 regional economy. These records are explicit foreign
+  // economy facts for Module 5, not bonuses to the player country.
+  const FOREIGN_INDUSTRY_BASELINES = {
+    meridian: {
+      tradeCapacity: 90,
+      goods: {
+        food:               { production: 96, demand: 78, reserve: 4, price: 1.00 },
+        coal:               { production: 98, demand: 68, reserve: 5, price: 0.95 },
+        iron:               { production: 104, demand: 62, reserve: 5, price: 1.00 },
+        steel:              { production: 125, demand: 42, reserve: 8, price: 1.10 },
+        manufactured_goods: { production: 95, demand: 42, reserve: 5, price: 1.10 }
+      }
+    },
+    norvia: {
+      tradeCapacity: 80,
+      goods: {
+        food:               { production: 88, demand: 80, reserve: 4, price: 1.02 },
+        coal:               { production: 128, demand: 84, reserve: 6, price: 0.92 },
+        iron:               { production: 122, demand: 76, reserve: 6, price: 0.98 },
+        steel:              { production: 145, demand: 70, reserve: 10, price: 1.05 },
+        manufactured_goods: { production: 108, demand: 66, reserve: 6, price: 1.08 }
+      }
+    }
+  };
+
   const DEFAULTS = {
     maxMajorActionsPerTurn: 1,
     maxMinorActionsPerTurn: 1,
@@ -161,6 +187,122 @@ const CountryAI = (() => {
     } catch {
       return JSON.parse(JSON.stringify(value));
     }
+  }
+
+  function hasMeaningfulForeignIndustry(economy) {
+    return Object.values(economy?.goods || {}).some(g => {
+      if (typeof g === "number") return Number(g) > 0;
+      return ["production","output","supply","domesticDemand","demand","consumption"]
+        .some(k => Number.isFinite(Number(g?.[k])) && Number(g[k]) > 0);
+    });
+  }
+
+  function ensureForeignIndustryEconomy(countryId, state = runtime.lastGameState) {
+    if (!state || countryId === state.playerCountryId) return null;
+    const baseline = FOREIGN_INDUSTRY_BASELINES[countryId];
+    if (!baseline) return null;
+
+    state.countries = state.countries || {};
+    const country = state.countries[countryId] = state.countries[countryId] || { id: countryId };
+    const existing = country.economy || {};
+
+    // Respect any later real foreign economy implementation. This fallback owns
+    // the record only while no other module has published meaningful goods.
+    if (
+      existing.sourceModule !== "module6_foreign_industry" &&
+      hasMeaningfulForeignIndustry(existing)
+    ) return existing;
+
+    const goods = {};
+    for (const [goodId, cfg] of Object.entries(baseline.goods || {})) {
+      const production = Math.max(0, num(cfg.production));
+      const demand = Math.max(0, num(cfg.demand));
+      const consumption = Math.min(production, demand);
+      const reserve = Math.max(0, num(cfg.reserve));
+      const price = Math.max(0.01, num(cfg.price, 1));
+      goods[goodId] = {
+        production,
+        output: production,
+        supply: production,
+        domesticDemand: demand,
+        demand,
+        consumption,
+        domesticConsumption: consumption,
+        strategicReserveTarget: reserve,
+        reserveTarget: reserve,
+        price,
+        basePrice: price,
+        sourceModule: "module6_foreign_industry"
+      };
+    }
+
+    country.economy = {
+      ...existing,
+      sourceModule: "module6_foreign_industry",
+      macroBaseline: true,
+      updatedYear: turnNumber(state),
+      goods
+    };
+
+    // Foreign states need a declared external gateway until/if a future world
+    // model gives them physical ports. Module 5 still applies route capacity.
+    if (!(Number(country.tradeCapacity) > 0)) country.tradeCapacity = baseline.tradeCapacity;
+
+    return country.economy;
+  }
+
+  function getForeignIndustryMonitor(countryId, state = runtime.lastGameState) {
+    if (!state) return null;
+    const economy = ensureForeignIndustryEconomy(countryId, state);
+    if (!economy) return null;
+
+    const now = turnNumber(state);
+    const goods = {};
+    for (const [goodId, g] of Object.entries(economy.goods || {})) {
+      const production = Math.max(0, num(g.production));
+      const demand = Math.max(0, num(g.domesticDemand, num(g.demand)));
+      const consumption = Math.max(0, num(g.consumption, Math.min(production, demand)));
+      const reserve = Math.max(0, num(g.strategicReserveTarget, num(g.reserveTarget)));
+      const grossSurplus = Math.max(0, production - consumption - reserve);
+      const committedExports = values(state.tradeContracts).filter(c =>
+        c && c.status === "active" &&
+        c.exporterCountryId === countryId &&
+        c.goodId === goodId &&
+        now >= num(c.startYear) &&
+        now <= num(c.endYear)
+      ).reduce((sum, c) => sum + Math.max(0, num(c.contractedVolume)), 0);
+      goods[goodId] = {
+        production,
+        demand,
+        consumption,
+        reserve,
+        grossSurplus,
+        committedExports,
+        exportableSupply: Math.max(0, grossSurplus - committedExports),
+        price: Math.max(0.01, num(g.price, 1))
+      };
+    }
+
+    return {
+      countryId,
+      identity: PROFILES[countryId]?.identity || countryId,
+      year: now,
+      sourceModule: economy.sourceModule,
+      tradeCapacity: Math.max(0, num(state.countries?.[countryId]?.tradeCapacity)),
+      goods
+    };
+  }
+
+  function refreshForeignIndustryMonitor(state = runtime.lastGameState) {
+    if (!state) return {};
+    state.ai = state.ai || {};
+    state.ai.foreignIndustryMonitor = state.ai.foreignIndustryMonitor || {};
+    for (const id of AI_COUNTRY_IDS) {
+      if (!state.countries?.[id]) continue;
+      ensureForeignIndustryEconomy(id, state);
+      state.ai.foreignIndustryMonitor[id] = getForeignIndustryMonitor(id, state);
+    }
+    return state.ai.foreignIndustryMonitor;
   }
 
   function ownerOfFacility(f) {
@@ -304,6 +446,7 @@ const CountryAI = (() => {
 
     for (const id of AI_COUNTRY_IDS) {
       ensureState(id);
+      if (gameState?.countries?.[id]) ensureForeignIndustryEconomy(id, gameState);
     }
 
     if (gameState) {
@@ -312,6 +455,7 @@ const CountryAI = (() => {
       for (const id of AI_COUNTRY_IDS) {
         gameState.ai.countries[id] = runtime.states[id];
       }
+      refreshForeignIndustryMonitor(gameState);
     }
 
     return runtime.states;
@@ -2530,6 +2674,7 @@ const CountryAI = (() => {
     if (!runtime.adapters) runtime.adapters = makeAdapters();
 
     const ai = ensureState(countryId);
+    ensureForeignIndustryEconomy(countryId, gameState);
 
     observeCountry(countryId, gameState);
     detectNeeds(countryId, gameState);
@@ -2576,6 +2721,8 @@ const CountryAI = (() => {
       };
     }
 
+    refreshForeignIndustryMonitor(gameState);
+
     return {
       countryId,
       observation: ai.lastObservation,
@@ -2583,6 +2730,7 @@ const CountryAI = (() => {
       opportunities: ai.perceivedOpportunities,
       goals: ai.strategicGoals,
       activePlans: ai.activePlans,
+      foreignIndustry: getForeignIndustryMonitor(countryId, gameState),
       candidates: ai.candidateActions,
       decisions: results,
       explanation: getDecisionExplanation(countryId)
@@ -2708,7 +2856,8 @@ const CountryAI = (() => {
       })),
       decision: ai.lastDecision,
       memory: ai.decisionMemory,
-      diagnostics: ai.diagnostics
+      diagnostics: ai.diagnostics,
+      foreignIndustry: getForeignIndustryMonitor(countryId, runtime.lastGameState)
     });
   }
 
@@ -3111,6 +3260,7 @@ const CountryAI = (() => {
     getDebugSnapshot,
     formatDebugText,
     getState,
+    getForeignIndustryMonitor,
 
     runRequiredTests,
 
@@ -3121,7 +3271,8 @@ const CountryAI = (() => {
     getMarketPosition,
     composePlans,
 
-    profiles: safeClone(PROFILES)
+    profiles: safeClone(PROFILES),
+    foreignIndustryBaselines: safeClone(FOREIGN_INDUSTRY_BASELINES)
   };
 })();
 

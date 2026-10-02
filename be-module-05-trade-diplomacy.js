@@ -186,11 +186,31 @@ const TradeDiplomacy = (() => {
   // Module 3 adapters
   // Supports several likely economy shapes so Module 5 does not own production.
   // ---------------------------------------------------------------------------
+  function hasMeaningfulEconomyGoods(economy) {
+    return Object.values(economy?.goods || {}).some(g => {
+      if (typeof g === "number") return Number(g) > 0;
+      return ["production","output","supply","availableDomestic","domesticDemand","demand","consumption"]
+        .some(k => Number.isFinite(Number(g?.[k])) && Number(g[k]) > 0);
+    });
+  }
+
   function economyCountry(state, countryId) {
-    if (state.economy?.countries?.[countryId]) return state.economy.countries[countryId];
-    if (state.economy?.[countryId]) return state.economy[countryId];
+    const shared = state.economy?.countries?.[countryId] || state.economy?.[countryId] || null;
+    const declared = state.countries?.[countryId]?.economy || null;
+
+    // Foreign AI countries are currently represented by Module 6 macro-industry
+    // snapshots. Module 3 may still publish an empty placeholder for them. Use
+    // the Module 6 snapshot only when the shared Module 3 record has no real
+    // goods activity, so a future authoritative foreign economy automatically wins.
+    if (
+      countryId !== state.playerCountryId &&
+      declared?.sourceModule === "module6_foreign_industry" &&
+      !hasMeaningfulEconomyGoods(shared)
+    ) return declared;
+
+    if (shared) return shared;
     if (countryId === state.playerCountryId && state.economy && !state.economy.countries) return state.economy;
-    return state.countries?.[countryId]?.economy || {};
+    return declared || {};
   }
 
   function goodRecord(state, countryId, goodId) {
@@ -285,6 +305,28 @@ const TradeDiplomacy = (() => {
       };
     }
 
+    // Bootstrap only: an existing active port city can handle limited coastal
+    // commerce before the player constructs a formal Module 2 port facility.
+    // A physical port, once built, always takes precedence above this fallback.
+    const portCities = Object.values(state.cities || {}).filter(c =>
+      c?.active !== false &&
+      c?.status !== "abandoned" &&
+      c?.countryId === countryId &&
+      String(c?.role || "").toLowerCase() === "port_city"
+    );
+    if (portCities.length) {
+      const capacity = Math.min(90, portCities.reduce((sum, c) =>
+        sum + Math.max(0, Number(c.tradeCapacity ?? c.portCapacity ?? 70)), 0));
+      return {
+        countryId,
+        capacity,
+        source: "initial_port_city_capacity",
+        physical: false,
+        ports: [],
+        cities: portCities.map(c => c.id)
+      };
+    }
+
     const declared = Number(
       state.tradeInfrastructure?.[countryId]?.capacity
       ?? state.countries?.[countryId]?.tradeCapacity
@@ -307,6 +349,13 @@ const TradeDiplomacy = (() => {
     }
 
     return { countryId, capacity: 0, source: "none", physical: false, ports: [] };
+  }
+
+  function fallbackEndpointKey(countryId, infra) {
+    if (!infra || !(infra.capacity > 0)) return null;
+    if (infra.source === "legacy_country_capacity") return `legacy:${countryId}`;
+    if (infra.source === "initial_port_city_capacity") return `port_city:${countryId}`;
+    return null;
   }
 
   function getCountryPortCapacity(countryId, state = getState()) {
@@ -421,9 +470,10 @@ const TradeDiplomacy = (() => {
     }
 
     const infra = getCountryTradeInfrastructure(countryId, state);
-    if (infra.source === "legacy_country_capacity" && infra.capacity > 0) {
+    const fallbackKey = fallbackEndpointKey(countryId, infra);
+    if (fallbackKey) {
       return {
-        key: `legacy:${countryId}`,
+        key: fallbackKey,
         capacity: infra.capacity,
         source: infra.source,
         facilityId: null,
@@ -447,9 +497,8 @@ const TradeDiplomacy = (() => {
       );
       if (physicalPorts) continue;
       const infra = getCountryTradeInfrastructure(cid, state);
-      if (infra.source === "legacy_country_capacity" && infra.capacity > 0) {
-        pool[`legacy:${cid}`] = infra.capacity;
-      }
+      const key = fallbackEndpointKey(cid, infra);
+      if (key) pool[key] = infra.capacity;
     }
     return pool;
   }

@@ -72,6 +72,14 @@
     oil: { baseCost: 30, baseYears: 3, baseCapacity: 9, type: 'oil_field' }
   };
 
+  const PROJECT_BUILD_PRESETS = {
+    basic_factory: { cost: 14, totalTurns: 2 },
+    steelworks: { cost: 28, totalTurns: 3 },
+    power_plant: { cost: 18, totalTurns: 2 },
+    port: { cost: 24, totalTurns: 3 },
+    railway: { cost: 18, totalTurns: 2 }
+  };
+
   const FACILITY_LEVELS = {
     coal_mine: {
       maxLevel: 5,
@@ -628,6 +636,52 @@
     const c=canUpgradeConnection(connectionId,state);if(!c.ok)return c;const conn=state.connections[connectionId],s=c.nextSpec;const p={id:nextId('project_connection_upgrade'),type:'connection_upgrade',targetConnectionId:connectionId,regionId:null,name:`Upgrade ${conn.type}`,fromLevel:conn.level,toLevel:c.nextLevel,cost:s.upgradeCost,totalTurns:s.upgradeTurns,turnsRemaining:s.upgradeTurns,status:'under_construction',startedYear:nowYear(state),causalActionRef:options.causalActionRef||null};state.projects[p.id]=p;emit(state,'PROJECT_STARTED',{projectId:p.id,projectType:p.type,targetConnectionId:connectionId,causalActionRef:p.causalActionRef});return{ok:true,project:p};
   }
 
+  function getProjectBuildPreview(def,state){
+    def=def||{};
+    const type=String(def.type||'');
+    const out={type,ok:true,available:true,cost:0,totalTurns:1,regionId:def.regionId||null,countryId:def.countryId||def.ownerCountryId||state?.playerCountryId||null};
+
+    if(type==='resource_exploration'){
+      const method=EXPLORATION_METHODS[def.explorationMethod||def.explorationStage||'surface_mapping'];
+      if(!method)return{ok:false,available:false,type,error:'Unknown exploration method.'};
+      return Object.assign(out,{cost:Number(def.cost??method.cost??0),totalTurns:Number(def.totalTurns??method.years??1),resourceType:def.resourceType||null,parcelId:def.parcelId||null});
+    }
+
+    if(type==='mine_development'){
+      const est=estimateMineDevelopment(def.depositId,state,{method:def.method||'state'});
+      if(!est.ok)return Object.assign(out,{ok:false,available:false,error:est.error||est.blockedReason||'Mine development unavailable.',depositId:def.depositId||null});
+      return Object.assign(out,{cost:Number(def.cost??est.governmentCost??est.totalCost??0),totalTurns:Number(def.totalTurns??est.totalTurns??1),depositId:def.depositId,resourceType:est.resourceType,method:est.method,regionId:state?.discoveredDeposits?.[def.depositId]?.regionId||out.regionId});
+    }
+
+    if(type==='facility_upgrade'){
+      const targetId=def.targetFacilityId||def.facilityId;
+      const check=canUpgradeFacility(targetId,state);
+      if(!check.ok)return Object.assign(out,{ok:false,available:false,error:check.error||'Facility upgrade unavailable.',targetFacilityId:targetId});
+      const f=state.facilities[targetId],s=check.nextSpec||{};
+      return Object.assign(out,{cost:Number(def.cost??s.upgradeCost??0),totalTurns:Number(def.totalTurns??s.upgradeTurns??1),targetFacilityId:targetId,facilityType:f?.type||null,fromLevel:Number(f?.level||1),toLevel:Number(check.nextLevel||((f?.level||1)+1)),regionId:f?.regionId||out.regionId,countryId:f?.countryId||out.countryId});
+    }
+
+    if(type==='connection_upgrade'){
+      const targetId=def.targetConnectionId||def.connectionId;
+      const check=canUpgradeConnection(targetId,state);
+      if(!check.ok)return Object.assign(out,{ok:false,available:false,error:check.error||'Connection upgrade unavailable.',targetConnectionId:targetId});
+      const c=state.connections[targetId],s=check.nextSpec||{};
+      return Object.assign(out,{cost:Number(def.cost??s.upgradeCost??0),totalTurns:Number(def.totalTurns??s.upgradeTurns??1),targetConnectionId:targetId,connectionType:c?.type||null,fromLevel:Number(c?.level||1),toLevel:Number(check.nextLevel||((c?.level||1)+1)),regionId:def.regionId||c?.regionId||c?.fromId||null,countryId:c?.ownerCountryId||c?.countryId||out.countryId});
+    }
+
+    if(type==='railway'){
+      const p=PROJECT_BUILD_PRESETS.railway;
+      return Object.assign(out,{cost:Number(def.cost??p.cost),totalTurns:Number(def.totalTurns??p.totalTurns),fromId:def.fromId||null,toId:def.toId||null,regionId:def.regionId||def.fromId||out.regionId});
+    }
+
+    if(FACILITY_LEVELS[type] && !['coal_mine','iron_mine','copper_mine','oil_field'].includes(type)){
+      const p=PROJECT_BUILD_PRESETS[type]||{cost:10,totalTurns:2};
+      return Object.assign(out,{cost:Number(def.cost??p.cost),totalTurns:Number(def.totalTurns??p.totalTurns),facilityType:type});
+    }
+
+    return{ok:false,available:false,type,error:`Unsupported project type: ${type}`};
+  }
+
   function startProject(def,state){
     ensureState(state);
     if(def.type==='resource_exploration')return startExploration(def.regionId,def.resourceType,def.explorationMethod||def.explorationStage||'surface_mapping',state,def);
@@ -716,6 +770,7 @@
     EXPLORATION_METHODS,
     EXPLORATION_ALIASES,
     MINE_BASE,
+    PROJECT_BUILD_PRESETS,
     definitions:{FACILITY_LEVELS,CONNECTION_LEVELS},
     setWorld,
     initializeState,
@@ -732,6 +787,7 @@
     getMineDevelopmentOptions,
     chooseMineDevelopmentOption,
     startMineDevelopment,
+    getProjectBuildPreview,
     startProject,
     updateProjects,
     advanceYear,

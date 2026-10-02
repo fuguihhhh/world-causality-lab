@@ -60,10 +60,12 @@
     high:   { household: 0.22, business: 0.28, disposableIncomeFactor: 0.92 }
   };
 
-  // Modest deterministic opening-economy floor for ordinary household work and small private activity.
-  // It prevents populated cities from having a zero tax base without creating virtual large facilities.
-  var BASELINE_HOUSEHOLD_INCOME_PER_100K = 16;
-  var BASELINE_PRIVATE_PROFIT_PER_100K = 3;
+  // Deterministic baseline economy for ordinary household work and small private activity.
+  // This creates a real tax base from population; it never writes money directly into the treasury.
+  // Normal opening target (two 240k cities, normal tax): roughly 24 annual baseline revenue.
+  var BASELINE_HOUSEHOLD_INCOME_PER_100K = 28;
+  var BASELINE_PRIVATE_PROFIT_PER_100K = 8;
+  var BASELINE_CITY_FACTORS = { settlement:0.70, village:0.82, town:0.95, city:1.00, major_city:1.12 };
 
   var state = freshState();
 
@@ -513,9 +515,19 @@
     power_plant: { steel: 35, manufactured_goods: 20 },
     powerplant: { steel: 35, manufactured_goods: 20 },
     factory: { steel: 20, manufactured_goods: 14 },
+    basic_factory: { steel: 20, manufactured_goods: 14 },
     steelworks: { steel: 24, manufactured_goods: 16 },
+    resource_exploration: { steel: 10, manufactured_goods: 8 },
+    mine_development: { steel: 10, manufactured_goods: 8 },
+    facility_upgrade: { steel: 10, manufactured_goods: 8 },
+    connection_upgrade: { steel: 10, manufactured_goods: 8 },
     default: { steel: 10, manufactured_goods: 8 }
   };
+
+  // Upgrade projects keep using the same physical material categories, but higher
+  // target levels require progressively more material. This is intentionally small
+  // and deterministic so UI previews and the formal annual allocator share one rule.
+  var UPGRADE_MATERIAL_FACTORS = { 2:0.50, 3:0.75, 4:1.00, 5:1.25 };
 
   function productionPriorityOf(f) {
     var p = String((f && (f.productionPriority || f.industryPriority)) || 'normal').toLowerCase();
@@ -1404,31 +1416,50 @@
         jobs += f.workersRequired; filled += f.workersEmployed; wages += f.wageBill;
         industrialOutput += sumValues(f.output);
       });
-      var cityPopulation = Math.max(0, num(c.population, 0));
-      var citySizeUnits = cityPopulation / 100000;
-      var baselineIncomeScale = clamp(num(c.baseIncome, 28) / 28, 0.5, 2);
-      var baselineHouseholdIncome = citySizeUnits * BASELINE_HOUSEHOLD_INCOME_PER_100K * baselineIncomeScale;
-      var baselinePrivateProfit = citySizeUnits * BASELINE_PRIVATE_PROFIT_PER_100K * baselineIncomeScale;
-      var grossHouseholdIncome = Math.max(wages, baselineHouseholdIncome);
-      var avgIncomeGross = filled > 0 ? wages * 10000 / filled : num(c.baseIncome, 28);
-      var avgIncome = avgIncomeGross * (1 - taxPolicy.household) * taxPolicy.disposableIncomeFactor;
+
       var regionId = regionIdForCity(idx, cid);
       var regionFood = state.regions[regionId] && state.regions[regionId].goods ? state.regions[regionId].goods.food : null;
+      var foodAvailability = regionFood && regionFood.finalDemand > 0 ? clamp(regionFood.finalUse / regionFood.finalDemand, 0, 1.5) : 1;
       var foodPrice = regionFood ? regionFood.price : state.goods.food.price;
       var prev = state.previous && state.previous.cities && state.previous.cities[cid];
       var prevOut = prev ? prev.industrialOutput : industrialOutput;
       var growth = prevOut > 0 ? clamp((industrialOutput - prevOut) / prevOut, -0.5, 0.5) : 0;
+
+      var cityPopulation = Math.max(0, num(c.population, 0));
+      var citySizeUnits = cityPopulation / 100000;
+      var urbanFactor = BASELINE_CITY_FACTORS[String(c.level || 'city').toLowerCase()] || 1;
+      var formalEmploymentShare = pool.total > 0 ? clamp(filled / pool.total, 0, 1) : 0;
+      var region = idx.regions[regionId] || {};
+      var transportFactor = clamp(num(c.localLogisticsFactor != null ? c.localLogisticsFactor :
+        (c.transportFactor != null ? c.transportFactor : region.localLogisticsFactor), 1), 0.6, 1.2);
+      // Baseline household and small-business activity follows real opening conditions.
+      // Moderate food shortfalls reduce, but do not eliminate, the ordinary tax base.
+      var foodEconomyFactor = clamp(foodAvailability, 0, 1);
+      var foodStress = clamp(1 - foodEconomyFactor, 0, 1);
+      var negativeGrowthStress = Math.max(0, -growth);
+      var economicStress = clamp(foodStress + negativeGrowthStress, 0, 1);
+      var stabilityFactor = clamp(0.75 + 0.25 * foodEconomyFactor - 0.10 * negativeGrowthStress, 0.65, 1.05);
+      var marketFactor = clamp(0.75 + 0.25 * foodEconomyFactor + 0.15 * transportFactor - 0.20 * economicStress, 0.55, 1.25);
+
+      var baselineHouseholdIncomeRaw = citySizeUnits * BASELINE_HOUSEHOLD_INCOME_PER_100K * urbanFactor * stabilityFactor;
+      var baselineHouseholdIncome = baselineHouseholdIncomeRaw * (1 - 0.65 * formalEmploymentShare);
+      var baselinePrivateProfit = citySizeUnits * BASELINE_PRIVATE_PROFIT_PER_100K * urbanFactor * marketFactor;
+      var grossHouseholdIncome = Math.max(0, wages) + baselineHouseholdIncome;
+
+      var avgIncomeGross = filled > 0 ? wages * 10000 / filled : num(c.baseIncome, 28);
+      var avgIncome = avgIncomeGross * (1 - taxPolicy.household) * taxPolicy.disposableIncomeFactor;
       var localFacilities = Object.keys(state.facilities).map(function(k){return state.facilities[k];}).filter(function(x){return String(x.cityId)===String(cid);});
       var bottleneck = localFacilities.filter(function(x){return x.mainBottleneck;}).sort(function(a,b){return a.productionLevel-b.productionLevel;})[0];
       state.cities[cid] = {
         cityId: cid, regionId: regionId, countryId: countryIdForCity(idx, cid), jobsAvailable: jobs, jobsFilled: filled,
         availableWorkers: pool.total, unemployedWorkers: Math.max(0, pool.total - filled),
-        employmentRate: pool.total > 0 ? clamp(filled / pool.total, 0, 1) : 0,
+        employmentRate: formalEmploymentShare,
         averageIncome: avgIncome, averageGrossIncome: avgIncomeGross,
-        totalHouseholdIncome: grossHouseholdIncome, grossHouseholdIncome: grossHouseholdIncome,
-        baselineHouseholdIncome: baselineHouseholdIncome, baselinePrivateProfit: baselinePrivateProfit, industrialOutput: industrialOutput,
-        foodAvailability: regionFood && regionFood.finalDemand > 0 ? clamp(regionFood.finalUse / regionFood.finalDemand, 0, 1.5) : 1,
-        foodPrice: foodPrice, economicGrowth: growth, growthRate: growth,
+        totalHouseholdIncome: grossHouseholdIncome, grossHouseholdIncome: grossHouseholdIncome, formalHouseholdIncome:wages,
+        baselineHouseholdIncomeRaw:baselineHouseholdIncomeRaw, baselineHouseholdIncome:baselineHouseholdIncome,
+        baselinePrivateProfit:baselinePrivateProfit, baselineUrbanFactor:urbanFactor, baselineStabilityFactor:stabilityFactor,
+        baselineMarketFactor:marketFactor, baselineFoodEconomyFactor:foodEconomyFactor, formalEmploymentShare:formalEmploymentShare, industrialOutput: industrialOutput,
+        foodAvailability: foodAvailability, foodPrice: foodPrice, economicGrowth: growth, growthRate: growth,
         taxBurden: taxPolicy.household,
         majorBottleneck: bottleneck ? bottleneck.mainBottleneck.replace('input:','') : null
       };
@@ -1463,15 +1494,49 @@
     return Math.max(1, num(p.totalTurns != null ? p.totalTurns : (p.durationTurns != null ? p.durationTurns : p.duration), 1));
   }
 
-  function projectMaterialRequirementsPerTurn(p) {
-    var explicit = p.materialRequirements || p.materialDemand || p.resourceRequirements || {};
+  function projectMaterialProfileType(p, idx) {
     var type = String(p.type || p.projectType || 'default').toLowerCase();
-    var defaults = PROJECT_MATERIAL_DEFAULTS[type] || PROJECT_MATERIAL_DEFAULTS.default;
+    if (type === 'facility_upgrade') {
+      if (p.facilityType) return String(p.facilityType).toLowerCase();
+      var f = idx && idx.facilities && idx.facilities[p.targetFacilityId];
+      if (f && f.type) return String(f.type).toLowerCase();
+    }
+    if (type === 'connection_upgrade') {
+      if (p.connectionType) return String(p.connectionType).toLowerCase();
+      var cs = idx && idx.connections || [];
+      for (var i=0;i<cs.length;i++) if (String(cs[i].id) === String(p.targetConnectionId)) return String(cs[i].type || 'railway').toLowerCase();
+      return 'railway';
+    }
+    return type;
+  }
+
+  function upgradeMaterialFactor(toLevel) {
+    var level = Math.max(2, Math.round(num(toLevel, 2)));
+    if (UPGRADE_MATERIAL_FACTORS[level] != null) return UPGRADE_MATERIAL_FACTORS[level];
+    return Math.max(0.5, 1 + (level - 4) * 0.25);
+  }
+
+  function projectMaterialRequirementsTotal(p, idx) {
+    var explicit = p.materialRequirements || p.materialDemand || p.resourceRequirements || {};
+    var hasExplicit = explicit.steel != null || explicit.manufactured_goods != null || explicit.manufacturedGoods != null;
+    var profileType = projectMaterialProfileType(p, idx);
+    var defaults = PROJECT_MATERIAL_DEFAULTS[profileType] || PROJECT_MATERIAL_DEFAULTS.default;
     var total = {
       steel: explicit.steel != null ? Math.max(0, num(explicit.steel)) : num(defaults.steel, 0),
       manufactured_goods: explicit.manufactured_goods != null ? Math.max(0, num(explicit.manufactured_goods)) :
         (explicit.manufacturedGoods != null ? Math.max(0, num(explicit.manufacturedGoods)) : num(defaults.manufactured_goods, 0))
     };
+    var type = String(p.type || p.projectType || 'default').toLowerCase();
+    if (!hasExplicit && (type === 'facility_upgrade' || type === 'connection_upgrade')) {
+      var factor = upgradeMaterialFactor(p.toLevel);
+      total.steel = Math.max(0, Math.round(total.steel * factor));
+      total.manufactured_goods = Math.max(0, Math.round(total.manufactured_goods * factor));
+    }
+    return total;
+  }
+
+  function projectMaterialRequirementsPerTurn(p, idx) {
+    var total = projectMaterialRequirementsTotal(p, idx);
     var duration = getProjectDurationTurns(p);
     return {
       steel: total.steel / duration,
@@ -1486,7 +1551,7 @@
       if (p.status === 'cancelled' || p.completed === true || p.status === 'completed') return;
       var rid = projectRegionId(idx, p);
       if (!rid || !regionalGoods[rid]) return;
-      var req = projectMaterialRequirementsPerTurn(p);
+      var req = projectMaterialRequirementsPerTurn(p, idx);
       var pid = idOf(p, 'project', i);
       if (!state.projects[pid]) {
         state.projects[pid] = {
@@ -1568,6 +1633,80 @@
         delayedByMaterials: pe.delayedByMaterials, missingMaterials: copy(missing)
       };
     });
+  }
+
+  function previewGoodAvailable(regionId, goodId, gameState) {
+    var g = state.regions[regionId] && state.regions[regionId].goods ? state.regions[regionId].goods[goodId] : null;
+    if (!g && gameState && gameState.economy && gameState.economy.regions && gameState.economy.regions[regionId]) {
+      g = gameState.economy.regions[regionId].goods && gameState.economy.regions[regionId].goods[goodId];
+    }
+    if (!g) return 0;
+    var fields = ['endingInventory','stockpile','available','surplus','marketSupply'];
+    for (var i=0;i<fields.length;i++) if (Number.isFinite(Number(g[fields[i]]))) return Math.max(0, Number(g[fields[i]]));
+    return 0;
+  }
+
+  function previewTreasury(countryId, gameState) {
+    var f = state.countries[countryId] && state.countries[countryId].governmentFinance;
+    if (f && Number.isFinite(Number(f.treasury))) return Math.max(0, Number(f.treasury));
+    var ef = gameState && gameState.economy && gameState.economy.countries && gameState.economy.countries[countryId] && gameState.economy.countries[countryId].governmentFinance;
+    if (ef && Number.isFinite(Number(ef.treasury))) return Math.max(0, Number(ef.treasury));
+    var c = gameState && gameState.countries && gameState.countries[countryId];
+    if (c && Number.isFinite(Number(c.treasury))) return Math.max(0, Number(c.treasury));
+    var cfg = gameState && gameState.economyConfig && (gameState.economyConfig[countryId] || gameState.economyConfig);
+    return Math.max(0, num(cfg && cfg.treasury, 30));
+  }
+
+  function getProjectRequirementPreview(projectDef, gameState) {
+    projectDef = projectDef || {};
+    gameState = gameState || {};
+    var idx = indexGame(gameState);
+    var p = Object.assign({}, projectDef);
+    if (!p.regionId && p.cityId != null) p.regionId = regionIdForCity(idx, String(p.cityId));
+    if (!p.regionId && p.type === 'facility_upgrade' && p.targetFacilityId && idx.facilities[p.targetFacilityId]) p.regionId = idx.facilities[p.targetFacilityId].regionId;
+    if (!p.regionId && p.type === 'connection_upgrade' && p.targetConnectionId) {
+      var conn = idx.connections.find(function(c){ return String(c.id) === String(p.targetConnectionId); });
+      if (conn) p.regionId = conn.regionId || conn.fromId || null;
+    }
+    var duration = getProjectDurationTurns(p);
+    var totalMaterials = projectMaterialRequirementsTotal(p, idx);
+    var money = Math.max(0, num(p.totalCost != null ? p.totalCost : p.cost, 0));
+    var perYear = {
+      money: money / duration,
+      steel: totalMaterials.steel / duration,
+      manufactured_goods: totalMaterials.manufactured_goods / duration
+    };
+    var countryId = String(p.countryId || p.ownerCountryId || gameState.playerCountryId || Object.keys(idx.countries)[0] || 'default');
+    var available = {
+      money: previewTreasury(countryId, gameState),
+      steel: p.regionId ? previewGoodAvailable(String(p.regionId), 'steel', gameState) : 0,
+      manufactured_goods: p.regionId ? previewGoodAvailable(String(p.regionId), 'manufactured_goods', gameState) : 0
+    };
+    var shortages = {
+      money: Math.max(0, perYear.money - available.money),
+      steel: Math.max(0, perYear.steel - available.steel),
+      manufactured_goods: Math.max(0, perYear.manufactured_goods - available.manufactured_goods)
+    };
+    var bottlenecks = [];
+    if (shortages.money > 1e-9) bottlenecks.push('money');
+    if (shortages.steel > 1e-9) bottlenecks.push('steel');
+    if (shortages.manufactured_goods > 1e-9) bottlenecks.push('manufactured_goods');
+    return {
+      ok: projectDef.ok !== false,
+      availableToStart: projectDef.available !== false,
+      type: String(p.type || p.projectType || 'default'),
+      profileType: projectMaterialProfileType(p, idx),
+      regionId: p.regionId || null,
+      countryId: countryId,
+      total: { money: money, steel: totalMaterials.steel, manufactured_goods: totalMaterials.manufactured_goods },
+      duration: duration,
+      perYear: perYear,
+      available: available,
+      shortages: shortages,
+      bottlenecks: bottlenecks,
+      status: projectDef.available === false ? 'blocked' : (bottlenecks.length ? 'constrained' : 'ready'),
+      note: projectDef.error || null
+    };
   }
 
   function projectPlannedSpendPerTurn(p) {
@@ -1672,12 +1811,15 @@
       var cfg = (gs.governmentFinance && (gs.governmentFinance[countryId] || gs.governmentFinance)) || {};
       var treasury = prev ? num(prev.treasury) : num(cfg.treasury, 30);
       var debt = prev ? num(prev.debt) : num(cfg.debt, 0);
-      var householdIncome = 0, businessTax = 0, businessProfitTaxBase = 0, resourceRevenue = 0, resourceRoyaltyBase = 0, stateProfit = 0;
+      var householdIncome = 0, formalHouseholdIncome = 0, baselineHouseholdIncome = 0, baselinePrivateProfit = 0, businessTax = 0, businessProfitTaxBase = 0, resourceRevenue = 0, resourceRoyaltyBase = 0, stateProfit = 0;
       Object.keys(state.cities).forEach(function(cid){
         var c = state.cities[cid];
         if (String(c.countryId || '') !== String(countryId)) return;
         householdIncome += Math.max(0, num(c.grossHouseholdIncome != null ? c.grossHouseholdIncome : c.totalHouseholdIncome));
+        formalHouseholdIncome += Math.max(0, num(c.formalHouseholdIncome, 0));
+        baselineHouseholdIncome += Math.max(0, num(c.baselineHouseholdIncome, 0));
         var smallPrivateProfit = Math.max(0, num(c.baselinePrivateProfit, 0));
+        baselinePrivateProfit += smallPrivateProfit;
         businessProfitTaxBase += smallPrivateProfit;
         businessTax += smallPrivateProfit * taxPolicy.business;
       });
@@ -1741,7 +1883,7 @@
       if (maxAutoRepay > 0) { debt -= maxAutoRepay; treasury -= maxAutoRepay; }
 
       var taxBases = {
-        householdIncome:householdIncome, businessProfit:businessProfitTaxBase, resourceSales:resourceRoyaltyBase,
+        householdIncome:householdIncome, formalHouseholdIncome:formalHouseholdIncome, baselineHouseholdIncome:baselineHouseholdIncome, baselinePrivateProfit:baselinePrivateProfit, businessProfit:businessProfitTaxBase, resourceSales:resourceRoyaltyBase,
         importValue:tariffInfo.importValue, householdConsumption:consumptionTaxBase
       };
       var finance = { treasury: treasury, debt: debt, interestRate: interestRate, debtInterest: debtInterest,
@@ -1928,7 +2070,7 @@
     getCountryEconomy: getCountryEconomy, getGoodBalance: getGoodBalance,
     getRegionGoodBalance: getRegionGoodBalance, getRegionGoods: getRegionGoods,
     getFacilityEconomy: getFacilityEconomy, getGovernmentFinance: getGovernmentFinance,
-    getProjectEconomy: getProjectEconomy, getProjectProgressSignals: getProjectProgressSignals,
+    getProjectEconomy: getProjectEconomy, getProjectRequirementPreview:getProjectRequirementPreview, getProjectProgressSignals: getProjectProgressSignals,
     getModule2Signals: getModule2Signals, getModule4Signals: getModule4Signals, getModule5Signals: getModule5Signals, getFiscalAudit:getFiscalAudit,
     getBottlenecks: getBottlenecks, getDebug: getDebug,
     getState: publicState

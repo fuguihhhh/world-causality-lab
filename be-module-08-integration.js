@@ -16,8 +16,7 @@ function refs(extra={}){return {
  Trade:global.TradeDiplomacy,
  AI:global.CountryAI,
  Events:global.IssuesEvents,
- Agriculture:BE.Agriculture,
- Research:extra.Research||BE.Research||global.BorderEpochResearch
+ Agriculture:BE.Agriculture
 };}
 function gsOf(session){return session&&session.state?session.state:global.gameState;}
 function ensureContainers(gs){
@@ -207,7 +206,6 @@ function publishModules(gs,R,aiResults,eventResult){
  gs.modules.ai={results:clone(aiResults||[]),issues:[]};
  if(R.Events)gs.modules.events={version:R.Events.VERSION,state:R.Events.serialize(),situations:R.Events.getCurrentSituations(gs),stories:R.Events.getStories()};
  if(eventResult)gs.modules.events.lastUpdate=clone(eventResult);
- if(R.Research){const rd=R.Research.getDashboard?.(gs)||null;gs.modules.research={version:R.Research.VERSION||null,status:clone(rd?.status||null),runtime:clone(gs.research?.runtime||{})};}
 }
 function preservePopulationDuringUrban(gs,R){
  if(!R.Main?.updateUrbanYear||!runtime.session)return[];
@@ -229,7 +227,6 @@ function initialize(session,extra={}){
  if(!initialFinance||!Number.isFinite(Number(initialFinance.treasury)))integrationDiagnostic(gs,'INTEGRATION_FINANCE_MISSING',{countryId:gs.playerCountryId,context:'initialize'});
  R.Trade?.initializeState?.(gs);R.AI?.initialize?.(gs);seedAgriculture(gs,R);
  if(R.Events){const saved=gs.modules?.events?.state||null;R.Events.init({adapters:eventAdapters(gs,R),savedState:saved||blankEventState(R)});}
- R.Research?.initializeState?.(gs);
  runtime.initialized=true;runtime.lastReport={initialized:true,year:gs.time.year,moduleStatus:getModuleStatus()};return runtime.lastReport;
 }
 async function advanceOneYear(session,extra={}){
@@ -237,9 +234,8 @@ async function advanceOneYear(session,extra={}){
  try{
   if(session&&session!==runtime.session)initialize(session,extra);else if(!runtime.initialized)initialize(session||runtime.session,extra);else runtime.refs=refs(extra);
   const R=runtime.refs,gs=ensureContainers(gsOf(runtime.session));
-  // Authoritative annual order: year -> research prepare -> agriculture -> economy -> same-year project progress -> downstream modules -> research settle.
+  // Authoritative annual order: year -> agriculture -> economy -> same-year project progress -> downstream modules.
   gs.time.year=n(gs.time.year,2030)+1;gs.turn=gs.time.year;
-  const researchPrepare=R.Research?.prepareYear?.(gs)||null;
   const ag=runAgriculture(gs,R);
   const econ=R.Economy?.update?.(gs)||null;
   if(econ){gs.economy=clone(econ);gs.modules.economy={state:clone(econ),module2Signals:clone(econ.module2Signals||{})};}
@@ -251,21 +247,19 @@ async function advanceOneYear(session,extra={}){
   const urbanEvents=preservePopulationDuringUrban(gs,R);
   const nextTradeFlows=buildExternalTradeForNextYear(gs,R);
   let events=null;if(R.Events){R.Events.setAdapters(eventAdapters(gs,R));events=await R.Events.update(gs);}
-  const researchSimulate=R.Research?.simulateYear?.(gs)||null;
-  const researchFinalize=R.Research?.finalizeYear?.(gs)||null;
   publishModules(gs,R,ai,events);
-  const report={ok:true,year:gs.time.year,developmentCompleted:completed,urbanEvents,agriculture:ag.ok,economy:!!econ,population:!!pop,trade:!!trade,aiCountries:ai.length,eventSystem:!!events,research:!!R.Research,researchPrepare,researchSimulate,researchFinalize,nextTradeFlowCount:nextTradeFlows.length,moduleStatus:getModuleStatus()};
+  const report={ok:true,year:gs.time.year,developmentCompleted:completed,urbanEvents,agriculture:ag.ok,economy:!!econ,population:!!pop,trade:!!trade,aiCountries:ai.length,eventSystem:!!events,nextTradeFlowCount:nextTradeFlows.length,moduleStatus:getModuleStatus()};
   runtime.lastReport=report;gs.integration=gs.integration||{};gs.integration.lastAnnualReport=clone(report);gs.history.push({id:`integration_${gs.time.year}`,type:'ANNUAL_INTEGRATION_SETTLED',sourceModule:'module8',year:gs.time.year,summary:clone(report)});
   return report;
  }finally{runtime.turnLock=false;}
 }
-function getModuleStatus(){const R=runtime.refs||refs();return {module1:!!R.World,module2:!!R.Development,module3:!!R.Economy,module4:!!R.Population,module5:!!R.Trade,module6:!!R.AI,module7:!!R.Events,module8:true,module9:!!R.Agriculture,module10:!!R.Research};}
-function validateIntegration(){const s=getModuleStatus(),errors=[];for(const [k,v] of Object.entries(s))if(!v)errors.push(`${k} missing`);const R=runtime.refs||refs();if(R.Agriculture&&!R.Agriculture.simulateYear)errors.push('Module9.simulateYear missing');if(R.Economy&&!R.Economy.update)errors.push('Module3.update missing');if(R.Population&&!R.Population.update)errors.push('Module4.update missing');if(R.Trade&&!R.Trade.update)errors.push('Module5.update missing');if(R.AI&&!R.AI.updateCountry)errors.push('Module6.updateCountry missing');if(R.Events&&!R.Events.update)errors.push('Module7.update missing');if(R.Research){for(const name of ['initializeState','prepareYear','simulateYear','finalizeYear','getDashboard'])if(typeof R.Research[name]!=='function')errors.push(`Module10.${name} missing`);}return {ok:errors.length===0,errors,status:s};}
+function getModuleStatus(){const R=runtime.refs||refs();return {module1:!!R.World,module2:!!R.Development,module3:!!R.Economy,module4:!!R.Population,module5:!!R.Trade,module6:!!R.AI,module7:!!R.Events,module8:true,module9:!!R.Agriculture};}
+function validateIntegration(){const s=getModuleStatus(),errors=[];for(const [k,v] of Object.entries(s))if(!v)errors.push(`${k} missing`);const R=runtime.refs||refs();if(R.Agriculture&&!R.Agriculture.simulateYear)errors.push('Module9.simulateYear missing');if(R.Economy&&!R.Economy.update)errors.push('Module3.update missing');if(R.Population&&!R.Population.update)errors.push('Module4.update missing');if(R.Trade&&!R.Trade.update)errors.push('Module5.update missing');if(R.AI&&!R.AI.updateCountry)errors.push('Module6.updateCountry missing');if(R.Events&&!R.Events.update)errors.push('Module7.update missing');return {ok:errors.length===0,errors,status:s};}
 function save(){const gs=gsOf(runtime.session);if(!gs)return null;const econ=runtime.refs?.Economy?.getState?.();if(econ){gs.economy=clone(econ);gs.modules=gs.modules||{};gs.modules.economy={state:clone(econ),module2Signals:clone(econ.module2Signals||{})};}if(runtime.refs?.Events){gs.modules=gs.modules||{};gs.modules.events=gs.modules.events||{};gs.modules.events.state=runtime.refs.Events.serialize();}return JSON.stringify({format:'BorderEpoch.Module8.Save.v1',savedAt:new Date().toISOString(),state:gs,templateId:runtime.session?.template?.id||gs.world?.templateId||null});}
 function load(json,extra={}){const data=typeof json==='string'?JSON.parse(json):clone(json);if(!data?.state)throw new Error('Invalid Module 8 save.');if(!runtime.session)throw new Error('Load requires an initialized UI session.');runtime.session.state=data.state;global.gameState=data.state;runtime.initialized=false;initialize(runtime.session,extra);return runtime.session;}
 function restart(seed,extra={}){const R=refs(extra);if(!R.Main?.initializeWorld)throw new Error('Main board unavailable.');runtime.session=R.Main.initializeWorld(seed||'border-epoch-2030',R.World,R.Development,extra.templateOverride||null);global.gameState=runtime.session.state;runtime.initialized=false;initialize(runtime.session,{...extra,...R});return runtime.session;}
 function getDebugSnapshot(){return {initialized:runtime.initialized,turnLock:runtime.turnLock,lastReport:clone(runtime.lastReport),validation:validateIntegration(),moduleStatus:getModuleStatus()};}
-const api={VERSION:'1.0.0-integrated-10',initialize,advanceOneYear,getModuleStatus,validateIntegration,save,load,restart,getDebugSnapshot,makeAgricultureContext:(gs)=>agricultureContext(gs,runtime.refs||refs()),collectIssues:(gs)=>collectIssues(gs,runtime.refs||refs())};
+const api={VERSION:'1.0.0-integrated-9',initialize,advanceOneYear,getModuleStatus,validateIntegration,save,load,restart,getDebugSnapshot,makeAgricultureContext:(gs)=>agricultureContext(gs,runtime.refs||refs()),collectIssues:(gs)=>collectIssues(gs,runtime.refs||refs())};
 BE.Module8=api;BE.Integration=api;global.BorderEpochIntegration=api;
 })(typeof window!=='undefined'?window:globalThis);
 /* ===== END MODULE 8 — FINAL INTEGRATION & GAME SHELL ===== */
